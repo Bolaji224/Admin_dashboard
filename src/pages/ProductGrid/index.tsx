@@ -1,201 +1,240 @@
 import _ from "lodash";
 import { useState, useRef } from "react";
-import fakerData from "@/utils/faker";
-import Button from "@/components/Base/Button";
-import Pagination from "@/components/Base/Pagination";
-import { FormInput, FormSelect } from "@/components/Base/Form";
-import Lucide from "@/components/Base/Lucide";
-import { Dialog, Menu } from "@/components/Base/Headless";
+import { Printer, FileText, Search, Plus, CheckSquare, Trash2, XCircle, ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight, DollarSign } from "lucide-react";
+
+// Mock data for pending deposits
+const mockDeposits = Array.from({ length: 9 }, (_, i) => {
+  const methodType = ['Bank Transfer', 'Credit Card', 'Crypto', 'PayPal'][Math.floor(Math.random() * 4)];
+  const bankDetails = methodType === 'Bank Transfer' ? {
+    bankName: ['Chase Bank', 'Wells Fargo', 'Bank of America', 'Citibank'][Math.floor(Math.random() * 4)],
+    accountName: `User ${i + 1}`,
+    accountNumber: `****${Math.floor(1000 + Math.random() * 9000)}`,
+    referenceNumber: `REF${Math.floor(100000 + Math.random() * 900000)}`
+  } : null;
+
+  return {
+    id: `DP${2000 + i}`,
+    user: {
+      name: `User ${i + 1}`,
+      email: `user${i + 1}@example.com`,
+      avatar: `https://i.pravatar.cc/150?img=${i + 10}`
+    },
+    amount: (Math.random() * 3000 + 50).toFixed(2),
+    method: methodType,
+    bankDetails: bankDetails,
+    date: new Date(Date.now() - Math.random() * 5 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+    time: new Date(Date.now() - Math.random() * 5 * 24 * 60 * 60 * 1000).toLocaleTimeString(),
+    status: ['Pending', 'Verifying'][Math.floor(Math.random() * 2)],
+    transactionId: `TXN${Math.floor(1000000 + Math.random() * 9000000)}`
+  };
+});
 
 function Main() {
-  const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
-  const deleteButtonRef = useRef(null);
+  const [rejectConfirmationModal, setRejectConfirmationModal] = useState(false);
+  const rejectButtonRef = useRef(null);
 
   return (
     <>
-      <h2 className="mt-10 text-lg font-medium intro-y">Product Grid</h2>
+      <h2 className="mt-10 text-lg font-medium intro-y">Pending Deposits</h2>
       <div className="grid grid-cols-12 gap-6 mt-5">
         <div className="flex flex-wrap items-center col-span-12 mt-2 intro-y sm:flex-nowrap">
-          <Button variant="primary" className="mr-2 shadow-md">
-            Add New Product
-          </Button>
-          <Menu>
-            <Menu.Button as={Button} className="px-2 !box">
+          <button className="mr-2 shadow-md bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium">
+            Approve Selected
+          </button>
+          <div className="relative">
+            <button className="px-2 border border-gray-300 bg-white hover:bg-gray-50 rounded-md h-10 w-10 flex items-center justify-center">
               <span className="flex items-center justify-center w-5 h-5">
-                <Lucide icon="Plus" className="w-4 h-4" />
+                <Plus className="w-4 h-4" />
               </span>
-            </Menu.Button>
-            <Menu.Items className="w-40">
-              <Menu.Item>
-                <Lucide icon="Printer" className="w-4 h-4 mr-2" /> Print
-              </Menu.Item>
-              <Menu.Item>
-                <Lucide icon="FileText" className="w-4 h-4 mr-2" /> Export to
-                Excel
-              </Menu.Item>
-              <Menu.Item>
-                <Lucide icon="FileText" className="w-4 h-4 mr-2" /> Export to
-                PDF
-              </Menu.Item>
-            </Menu.Items>
-          </Menu>
+            </button>
+          </div>
           <div className="hidden mx-auto md:block text-slate-500">
             Showing 1 to 10 of 150 entries
           </div>
           <div className="w-full mt-3 sm:w-auto sm:mt-0 sm:ml-auto md:ml-0">
             <div className="relative w-56 text-slate-500">
-              <FormInput
+              <input
                 type="text"
-                className="w-56 pr-10 !box"
+                className="w-56 pr-10 border border-gray-300 rounded-md px-3 py-2"
                 placeholder="Search..."
               />
-              <Lucide
-                icon="Search"
-                className="absolute inset-y-0 right-0 w-4 h-4 my-auto mr-3"
-              />
+              <Search className="absolute inset-y-0 right-0 w-4 h-4 my-auto mr-3" />
             </div>
           </div>
         </div>
-        {/* BEGIN: Users Layout */}
-        {_.take(fakerData, 12).map((faker, fakerKey) => (
-          <div
-            key={fakerKey}
-            className="col-span-12 intro-y md:col-span-6 lg:col-span-4 xl:col-span-3"
-          >
-            <div className="box">
-              <div className="p-5">
-                <div className="h-40 overflow-hidden rounded-md 2xl:h-56 image-fit before:block before:absolute before:w-full before:h-full before:top-0 before:left-0 before:z-10 before:bg-gradient-to-t before:from-black before:to-black/10">
-                  <img
-                    alt="Midone - HTML Admin Template"
-                    className="rounded-md"
-                    src={faker.images[0]}
-                  />
-                  {faker.trueFalse[0] && (
-                    <span className="absolute top-0 z-10 px-2 py-1 m-5 text-xs text-white rounded bg-pending/80">
-                      Featured
-                    </span>
-                  )}
-                  <div className="absolute bottom-0 z-10 px-5 pb-6 text-white">
-                    <a href="" className="block text-base font-medium">
-                      {faker.products[0].name}
-                    </a>
-                    <span className="mt-3 text-xs text-white/90">
-                      {faker.products[0].category}
-                    </span>
-                  </div>
-                </div>
-                <div className="mt-5 text-slate-600 dark:text-slate-500">
-                  <div className="flex items-center">
-                    <Lucide icon="Link" className="w-4 h-4 mr-2" /> Price: $
-                    {faker.totals[0]}
-                  </div>
-                  <div className="flex items-center mt-2">
-                    <Lucide icon="Layers" className="w-4 h-4 mr-2" /> Remaining
-                    Stock:
-                    {faker.stocks[0]}
-                  </div>
-                  <div className="flex items-center mt-2">
-                    <Lucide icon="CheckSquare" className="w-4 h-4 mr-2" />{" "}
-                    Status:
-                    {faker.trueFalse[0] ? "Active" : "Inactive"}
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center justify-center p-5 border-t lg:justify-end border-slate-200/60 dark:border-darkmode-400">
-                <a className="flex items-center mr-auto text-primary" href="#">
-                  <Lucide icon="Eye" className="w-4 h-4 mr-1" /> Preview
-                </a>
-                <a className="flex items-center mr-3" href="#">
-                  <Lucide icon="CheckSquare" className="w-4 h-4 mr-1" /> Edit
-                </a>
-                <a
-                  className="flex items-center text-danger"
-                  href="#"
-                  onClick={(event) => {
-                    event.preventDefault();
-                    setDeleteConfirmationModal(true);
-                  }}
-                >
-                  <Lucide icon="Trash2" className="w-4 h-4 mr-1" /> Delete
-                </a>
-              </div>
-            </div>
-          </div>
-        ))}
-        {/* END: Users Layout */}
+        {/* BEGIN: Data List */}
+        <div className="col-span-12 overflow-auto intro-y lg:overflow-visible">
+          <table className="w-full border-separate border-spacing-y-[10px] -mt-2">
+            <thead>
+              <tr>
+                <th className="border-b-0 whitespace-nowrap px-5 py-3 text-left font-medium">
+                  USER
+                </th>
+                <th className="border-b-0 whitespace-nowrap px-5 py-3 text-left font-medium">
+                  DEPOSIT ID
+                </th>
+                <th className="text-center border-b-0 whitespace-nowrap px-5 py-3 font-medium">
+                  AMOUNT
+                </th>
+                <th className="text-center border-b-0 whitespace-nowrap px-5 py-3 font-medium">
+                  METHOD
+                </th>
+                <th className="text-center border-b-0 whitespace-nowrap px-5 py-3 font-medium">
+                  DATE & TIME
+                </th>
+                <th className="text-center border-b-0 whitespace-nowrap px-5 py-3 font-medium">
+                  STATUS
+                </th>
+                <th className="text-center border-b-0 whitespace-nowrap px-5 py-3 font-medium">
+                  ACTIONS
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {mockDeposits.map((deposit, index) => (
+                <tr key={index} className="intro-x">
+                  <td className="bg-white rounded-l-[0.6rem] border-r-0 shadow-[5px_3px_5px_#00000005] px-5 py-3 dark:bg-darkmode-600">
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 image-fit zoom-in">
+                        <img
+                          alt={deposit.user.name}
+                          className="rounded-full shadow-[0px_0px_0px_2px_#fff,_1px_1px_5px_rgba(0,0,0,0.32)] dark:shadow-[0px_0px_0px_2px_#3f4865,_1px_1px_5px_rgba(0,0,0,0.32)]"
+                          src={deposit.user.avatar}
+                        />
+                      </div>
+                      <div className="ml-4">
+                        <a href="#" className="font-medium whitespace-nowrap">
+                          {deposit.user.name}
+                        </a>
+                        <div className="text-slate-500 text-xs whitespace-nowrap mt-0.5">
+                          {deposit.user.email}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="bg-white border-x-0 shadow-[5px_3px_5px_#00000005] px-5 py-3 dark:bg-darkmode-600">
+                    <div className="font-medium text-slate-600">{deposit.id}</div>
+                    <div className="text-slate-500 text-xs mt-0.5">
+                      TXN: {deposit.transactionId}
+                    </div>
+                  </td>
+                  <td className="bg-white border-x-0 text-center shadow-[5px_3px_5px_#00000005] px-5 py-3 dark:bg-darkmode-600">
+                    <span className="font-semibold text-lg text-green-600">${deposit.amount}</span>
+                  </td>
+                  <td className="bg-white border-x-0 text-center shadow-[5px_3px_5px_#00000005] px-5 py-3 dark:bg-darkmode-600">
+                    <div className="font-medium">{deposit.method}</div>
+                    {deposit.bankDetails && (
+                      <div className="mt-2 text-xs text-slate-600 text-left bg-slate-50 p-2 rounded border border-slate-200">
+                        <div className="font-semibold mb-1">Bank Details:</div>
+                        <div><span className="font-medium">Bank:</span> {deposit.bankDetails.bankName}</div>
+                        <div><span className="font-medium">Account:</span> {deposit.bankDetails.accountName}</div>
+                        <div><span className="font-medium">Number:</span> {deposit.bankDetails.accountNumber}</div>
+                        <div><span className="font-medium">Ref:</span> {deposit.bankDetails.referenceNumber}</div>
+                      </div>
+                    )}
+                  </td>
+                  <td className="bg-white border-x-0 text-center shadow-[5px_3px_5px_#00000005] px-5 py-3 dark:bg-darkmode-600">
+                    <div className="font-medium">{deposit.date}</div>
+                    <div className="text-slate-500 text-xs mt-0.5">{deposit.time}</div>
+                  </td>
+                  <td className="bg-white w-40 border-x-0 shadow-[5px_3px_5px_#00000005] px-5 py-3 dark:bg-darkmode-600">
+                    <div
+                      className={`flex items-center justify-center ${
+                        deposit.status === 'Pending' ? 'text-amber-600' : 'text-blue-600'
+                      }`}
+                    >
+                      <CheckSquare className="w-4 h-4 mr-2" />
+                      {deposit.status}
+                    </div>
+                  </td>
+                  <td className="bg-white w-56 rounded-r-[0.6rem] border-l-0 shadow-[5px_3px_5px_#00000005] px-5 py-3 dark:bg-darkmode-600 relative before:absolute before:inset-y-0 before:left-0 before:my-auto before:block before:h-8 before:w-px before:bg-slate-200 before:dark:bg-darkmode-400">
+                    <div className="flex items-center justify-center">
+                      <a className="flex items-center mr-3 text-green-600 hover:text-green-800" href="#">
+                        <DollarSign className="w-4 h-4 mr-1" />
+                        Approve
+                      </a>
+                      <a
+                        className="flex items-center text-red-600 hover:text-red-800"
+                        href="#"
+                        onClick={(event) => {
+                          event.preventDefault();
+                          setRejectConfirmationModal(true);
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4 mr-1" /> Reject
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {/* END: Data List */}
         {/* BEGIN: Pagination */}
         <div className="flex flex-wrap items-center col-span-12 intro-y sm:flex-row sm:flex-nowrap">
-          <Pagination className="w-full sm:w-auto sm:mr-auto">
-            <Pagination.Link>
-              <Lucide icon="ChevronsLeft" className="w-4 h-4" />
-            </Pagination.Link>
-            <Pagination.Link>
-              <Lucide icon="ChevronLeft" className="w-4 h-4" />
-            </Pagination.Link>
-            <Pagination.Link>...</Pagination.Link>
-            <Pagination.Link>1</Pagination.Link>
-            <Pagination.Link active>2</Pagination.Link>
-            <Pagination.Link>3</Pagination.Link>
-            <Pagination.Link>...</Pagination.Link>
-            <Pagination.Link>
-              <Lucide icon="ChevronRight" className="w-4 h-4" />
-            </Pagination.Link>
-            <Pagination.Link>
-              <Lucide icon="ChevronsRight" className="w-4 h-4" />
-            </Pagination.Link>
-          </Pagination>
-          <FormSelect className="w-20 mt-3 !box sm:mt-0">
+          <div className="flex w-full sm:w-auto sm:mr-auto">
+            <button className="px-3 py-2 border border-gray-300 rounded-l-md bg-white hover:bg-gray-50">
+              <ChevronsLeft className="w-4 h-4" />
+            </button>
+            <button className="px-3 py-2 border-t border-b border-gray-300 bg-white hover:bg-gray-50">
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button className="px-3 py-2 border-t border-b border-gray-300 bg-white hover:bg-gray-50">...</button>
+            <button className="px-3 py-2 border-t border-b border-gray-300 bg-white hover:bg-gray-50">1</button>
+            <button className="px-3 py-2 border-t border-b border-gray-300 bg-blue-600 text-white">2</button>
+            <button className="px-3 py-2 border-t border-b border-gray-300 bg-white hover:bg-gray-50">3</button>
+            <button className="px-3 py-2 border-t border-b border-gray-300 bg-white hover:bg-gray-50">...</button>
+            <button className="px-3 py-2 border-t border-b border-gray-300 bg-white hover:bg-gray-50">
+              <ChevronRight className="w-4 h-4" />
+            </button>
+            <button className="px-3 py-2 border border-gray-300 rounded-r-md bg-white hover:bg-gray-50">
+              <ChevronsRight className="w-4 h-4" />
+            </button>
+          </div>
+          <select className="w-20 mt-3 border border-gray-300 rounded-md px-2 py-2 bg-white sm:mt-0">
             <option>10</option>
             <option>25</option>
             <option>35</option>
             <option>50</option>
-          </FormSelect>
+          </select>
         </div>
         {/* END: Pagination */}
       </div>
-      {/* BEGIN: Delete Confirmation Modal */}
-      <Dialog
-        open={deleteConfirmationModal}
-        onClose={() => {
-          setDeleteConfirmationModal(false);
-        }}
-        initialFocus={deleteButtonRef}
-      >
-        <Dialog.Panel>
-          <div className="p-5 text-center">
-            <Lucide
-              icon="XCircle"
-              className="w-16 h-16 mx-auto mt-3 text-danger"
-            />
-            <div className="mt-5 text-3xl">Are you sure?</div>
-            <div className="mt-2 text-slate-500">
-              Do you really want to delete these records? <br />
-              This process cannot be undone.
+      {/* BEGIN: Reject Confirmation Modal */}
+      {rejectConfirmationModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-5 text-center">
+              <XCircle className="w-16 h-16 mx-auto mt-3 text-red-600" />
+              <div className="mt-5 text-3xl">Are you sure?</div>
+              <div className="mt-2 text-slate-500">
+                Do you really want to reject this deposit? <br />
+                This process cannot be undone.
+              </div>
+            </div>
+            <div className="px-5 pb-8 text-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setRejectConfirmationModal(false);
+                }}
+                className="w-24 mr-1 px-4 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="w-24 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md"
+                ref={rejectButtonRef}
+              >
+                Reject
+              </button>
             </div>
           </div>
-          <div className="px-5 pb-8 text-center">
-            <Button
-              variant="outline-secondary"
-              type="button"
-              onClick={() => {
-                setDeleteConfirmationModal(false);
-              }}
-              className="w-24 mr-1"
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="danger"
-              type="button"
-              className="w-24"
-              ref={deleteButtonRef}
-            >
-              Delete
-            </Button>
-          </div>
-        </Dialog.Panel>
-      </Dialog>
-      {/* END: Delete Confirmation Modal */}
+        </div>
+      )}
+      {/* END: Reject Confirmation Modal */}
     </>
   );
 }
