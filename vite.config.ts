@@ -1,5 +1,4 @@
 import { fileURLToPath, URL } from "node:url";
-
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
@@ -20,6 +19,17 @@ export default defineConfig({
       "tailwind-config": fileURLToPath(
         new URL("./tailwind.config.js", import.meta.url)
       ),
+    },
+  },
+
+  // ✅ ADD THIS
+  server: {
+    proxy: {
+      "/api": {
+        target: "http://localhost:8000",
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
 });
