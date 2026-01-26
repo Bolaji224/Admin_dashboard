@@ -7,6 +7,8 @@ import Progress from "@/components/Base/Progress";
 import Lucide from "@/components/Base/Lucide";
 import Tippy from "@/components/Base/Tippy";
 import { Menu } from "@/components/Base/Headless";
+import { useNavigate } from "react-router-dom";
+
 
 interface Employer {
   id: number;
@@ -19,6 +21,8 @@ function Main() {
   const [employers, setEmployers] = useState<Employer[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const navigate = useNavigate();
+
 
   // 🔹 FETCH EMPLOYERS
   const fetchEmployers = async () => {
@@ -159,9 +163,14 @@ function Main() {
                   <Button variant="primary" className="px-2 py-1 mr-2">
                     Message
                   </Button>
-                  <Button variant="outline-secondary" className="px-2 py-1">
-                    View Profile
-                  </Button>
+                  <Button
+  variant="outline-secondary"
+  className="px-2 py-1"
+  onClick={() => navigate("/profile-overview-3")}
+>
+  View Profile
+</Button>
+
                 </div>
               </div>
             </div>

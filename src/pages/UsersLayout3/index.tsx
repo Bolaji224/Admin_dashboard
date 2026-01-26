@@ -5,6 +5,8 @@ import Pagination from "@/components/Base/Pagination";
 import { FormInput, FormSelect } from "@/components/Base/Form";
 import Lucide from "@/components/Base/Lucide";
 import { Menu } from "@/components/Base/Headless";
+import { useNavigate } from "react-router-dom";
+
 
 /* ===================== TYPES ===================== */
 interface Freelancer {
@@ -21,6 +23,8 @@ function Main() {
   const [freelancers, setFreelancers] = useState<Freelancer[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const navigate = useNavigate();
+
 
   /* ===================== FETCH ===================== */
   const fetchFreelancers = async () => {
@@ -179,9 +183,14 @@ function Main() {
                   <Button variant="primary" className="px-2 py-1 mr-2">
                     Message
                   </Button>
-                  <Button variant="outline-secondary" className="px-2 py-1">
-                    Profile
-                  </Button>
+                  <Button
+  variant="outline-secondary"
+  className="px-2 py-1"
+  onClick={() => navigate("/profile-overview-3")}
+>
+  View Profile
+</Button>
+
                 </div>
               </div>
             </div>
