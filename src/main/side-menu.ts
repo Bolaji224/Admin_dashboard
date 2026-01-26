@@ -114,11 +114,6 @@ const menu: Array<Menu | "divider"> = [
     subMenu: [
       {
         icon: "Activity",
-        pathname: "/profile-overview-1",
-        title: "Contract Details",
-      },
-      {
-        icon: "Activity",
         pathname: "/profile-overview-3",
         title: "User Edits",
       },
