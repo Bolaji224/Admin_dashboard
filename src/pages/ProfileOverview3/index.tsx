@@ -1,270 +1,242 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import axios from "axios";
 import {
   ChevronRight,
   Activity,
-  Box,
   Lock,
-  Settings,
   User,
   MoreHorizontal,
   Search,
-  X,
   Trash2,
   CheckCircle,
   Ban
 } from "lucide-react";
 
-/* ================= MOCK DATA ================= */
+/* ================= AXIOS CONFIG ================= */
 
-const userData = {
-  name: "John Doe",
-  email: "john.doe@example.com",
-  role: "Freelancer",
-  title: "Virtual Assistant",
-  bio: "Experienced virtual assistant with strong admin and research skills.",
-  skills: "Canva, Email Management, Research",
-  company: "",
-  location: "Lagos, Nigeria",
-  avatar:
-    "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop"
-};
-
-const mockUsers = [
-  { id: 1, name: "Alice Johnson", role: "Freelancer" },
-  { id: 2, name: "Bob Smith", role: "Employer" },
-  { id: 3, name: "Carol Williams", role: "Freelancer" }
-];
-
-/* ================= NAVIGATION ================= */
-
-const navigationSections = [
-  {
-    title: "Admin",
-    items: [
-      { id: "personal", icon: User, label: "User Profile" },
-      { id: "account", icon: Activity, label: "Account Status" },
-      { id: "security", icon: Lock, label: "Security" }
-    ]
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+  headers: {
+    "x-api-key": import.meta.env.VITE_ADMIN_API_KEY
   }
-];
+});
 
-/* ================= PAGES ================= */
-
-const PersonalInformation = () => (
-  <div className="space-y-6">
-    <h2 className="text-2xl font-semibold text-gray-800">
-      User Profile (Admin)
-    </h2>
-
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <Input label="Full Name" defaultValue={userData.name} />
-      <Input label="Email" defaultValue={userData.email} />
-
-      <Select
-        label="User Role"
-        options={["Freelancer", "Employer"]}
-        defaultValue={userData.role}
-      />
-
-      <Input label="Title / Profession" defaultValue={userData.title} />
-      <Input label="Location" defaultValue={userData.location} />
-
-      <Input
-        label="Skills (Freelancer)"
-        defaultValue={userData.skills}
-      />
-
-      <Input
-        label="Company (Employer)"
-        placeholder="Company name"
-        defaultValue={userData.company}
-      />
-
-      <Textarea label="Bio" defaultValue={userData.bio} />
-    </div>
-
-    <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-      Save Profile Changes
-    </button>
-  </div>
-);
-
-const AccountSettings = () => (
-  <div className="space-y-6">
-    <h2 className="text-2xl font-semibold text-gray-800">
-      Account Status
-    </h2>
-
-    <div className="bg-gray-50 border rounded-lg p-6 space-y-4">
-      <select className="w-full px-4 py-2 border rounded-lg">
-        <option>Active</option>
-        <option>Suspended</option>
-        <option>Banned</option>
-      </select>
-
-      <div className="flex flex-wrap gap-3">
-        <button className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg">
-          <CheckCircle size={18} />
-          Approve User
-        </button>
-
-        <button className="flex items-center gap-2 px-4 py-2 bg-yellow-500 text-white rounded-lg">
-          <Ban size={18} />
-          Suspend
-        </button>
-
-        <button className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg">
-          <Trash2 size={18} />
-          Delete User
-        </button>
-      </div>
-    </div>
-  </div>
-);
-
-const Security = () => (
-  <div className="space-y-8">
-    <h2 className="text-2xl font-semibold text-gray-800">
-      Security & Access
-    </h2>
-
-    {/* Password Info */}
-    <div className="border rounded-lg p-6 bg-gray-50 space-y-4">
-      <div>
-        <h3 className="font-medium text-gray-800">
-          Password Status
-        </h3>
-        <p className="text-sm text-gray-600">
-          Password is set and encrypted. Last updated: <span className="font-medium">2 months ago</span>
-        </p>
-      </div>
-    </div>
-
-    {/* Change Password */}
-    <div className="border rounded-lg p-6 space-y-6">
-      <h3 className="font-medium text-gray-800">
-        Change User Password
-      </h3>
-
-      <div className="space-y-4 max-w-md">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            New Password
-          </label>
-          <input
-            type="password"
-            placeholder="Enter new password"
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Confirm New Password
-          </label>
-          <input
-            type="password"
-            placeholder="Confirm new password"
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-
-        <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-          Update Password
-        </button>
-
-        <p className="text-xs text-gray-500">
-          User will be required to use the new password immediately.
-        </p>
-      </div>
-    </div>
-
-    {/* Session Control */}
-    <div className="border rounded-lg p-6 space-y-4">
-      <h3 className="font-medium text-gray-800">
-        Active Sessions
-      </h3>
-      <p className="text-sm text-gray-600">
-        Force logout from all active devices and browsers.
-      </p>
-
-      <button className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-        Logout User From All Devices
-      </button>
-    </div>
-  </div>
-);
-
-
-/* ================= MAIN LAYOUT ================= */
+/* ================= MAIN COMPONENT ================= */
 
 export default function AdminUserProfile() {
   const [activePage, setActivePage] = useState("personal");
+  const [users, setUsers] = useState<any[]>([]);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<any[]>([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const searchRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    if (searchQuery.trim()) {
-      setSearchResults(
-        mockUsers.filter(
-          (u) =>
-            u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            u.role.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-      );
-      setShowSearchResults(true);
-    } else {
-      setShowSearchResults(false);
-    }
-  }, [searchQuery]);
+  /* ================= FETCH USERS ================= */
 
-  const pageComponents: any = {
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    const res = await api.get("/v1/users");
+    setUsers(res.data.data);
+  };
+
+  const fetchUser = async (id: number) => {
+    const res = await api.get(`/v1/users/${id}`);
+    setSelectedUser(res.data.data);
+    setShowSearchResults(false);
+    setActivePage("personal");
+  };
+
+  /* ================= SEARCH ================= */
+
+  const filteredUsers = users.filter(
+    (u) =>
+      u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      u.role.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  /* ================= ACTIONS ================= */
+
+  const updateProfile = async () => {
+    if (!selectedUser) return;
+    await api.put(`/v1/users/${selectedUser.id}`, selectedUser);
+    alert("Profile updated");
+    fetchUsers();
+  };
+
+  const approveUser = async () => {
+    if (!selectedUser) return;
+    await api.post(`/v1/users/${selectedUser.id}/approve`);
+    fetchUser(selectedUser.id);
+  };
+
+  const suspendUser = async () => {
+    if (!selectedUser) return;
+    await api.post(`/v1/users/${selectedUser.id}/suspend`);
+    fetchUser(selectedUser.id);
+  };
+
+  const deleteUser = async () => {
+    if (!selectedUser) return;
+    if (!confirm("Delete this user?")) return;
+    await api.delete(`/v1/users/${selectedUser.id}`);
+    setSelectedUser(null);
+    fetchUsers();
+  };
+
+  const changePassword = async (password: string) => {
+    if (!selectedUser) return;
+    await api.post(`/v1/users/${selectedUser.id}/change-password`, {
+      password,
+      password_confirmation: password
+    });
+    alert("Password updated");
+  };
+
+  const logoutAll = async () => {
+    if (!selectedUser) return;
+    await api.post(`/v1/users/${selectedUser.id}/logout-all`);
+    alert("User logged out from all devices");
+  };
+
+  /* ================= PAGES ================= */
+
+  const PersonalInformation = () => (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-semibold">User Profile</h2>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Input
+          label="Full Name"
+          value={selectedUser.name}
+          onChange={(val) => setSelectedUser({ ...selectedUser, name: val })}
+        />
+        <Input
+          label="Email"
+          value={selectedUser.email}
+          onChange={(val) => setSelectedUser({ ...selectedUser, email: val })}
+        />
+        <Input
+          label="Role"
+          value={selectedUser.role}
+          onChange={(val) => setSelectedUser({ ...selectedUser, role: val })}
+        />
+        <Input
+          label="Title"
+          value={selectedUser.title || ""}
+          onChange={(val) => setSelectedUser({ ...selectedUser, title: val })}
+        />
+        <Input
+          label="Location"
+          value={selectedUser.location || ""}
+          onChange={(val) =>
+            setSelectedUser({ ...selectedUser, location: val })
+          }
+        />
+        <Input
+          label="Skills"
+          value={selectedUser.skills || ""}
+          onChange={(val) => setSelectedUser({ ...selectedUser, skills: val })}
+        />
+        <Input
+          label="Company"
+          value={selectedUser.company || ""}
+          onChange={(val) => setSelectedUser({ ...selectedUser, company: val })}
+        />
+        <Textarea
+          label="Bio"
+          value={selectedUser.bio || ""}
+          onChange={(val) => setSelectedUser({ ...selectedUser, bio: val })}
+        />
+      </div>
+
+      <button onClick={updateProfile} className="btn-primary">
+        Save Changes
+      </button>
+    </div>
+  );
+
+  const AccountSettings = () => (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-semibold">Account Status</h2>
+
+      <div className="flex gap-3">
+        <button onClick={approveUser} className="btn-success">
+          <CheckCircle size={18} /> Approve
+        </button>
+        <button onClick={suspendUser} className="btn-warning">
+          <Ban size={18} /> Suspend
+        </button>
+        <button onClick={deleteUser} className="btn-danger">
+          <Trash2 size={18} /> Delete
+        </button>
+      </div>
+    </div>
+  );
+
+  const Security = () => {
+    const [password, setPassword] = useState("");
+
+    return (
+      <div className="space-y-6">
+        <h2 className="text-2xl font-semibold">Security</h2>
+
+        <input
+          type="password"
+          placeholder="New Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="input"
+        />
+
+        <button onClick={() => changePassword(password)} className="btn-primary">
+          Update Password
+        </button>
+
+        <button onClick={logoutAll} className="btn-danger">
+          Logout User From All Devices
+        </button>
+      </div>
+    );
+  };
+
+  const pages: any = {
     personal: PersonalInformation,
     account: AccountSettings,
     security: Security
   };
 
-  const ActiveComponent = pageComponents[activePage];
+  const ActiveComponent = pages[activePage];
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="p-6 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Admin User Management
-          </h1>
+        <div className="flex justify-between mb-6">
+          <h1 className="text-3xl font-bold">Admin User Management</h1>
 
           <div className="relative w-80" ref={searchRef}>
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
+              className="input pl-10"
+              placeholder="Search users..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search users..."
-              className="w-full pl-10 pr-10 py-2 border rounded-lg"
+              onFocus={() => setShowSearchResults(true)}
             />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2"
-              >
-                <X className="w-5 h-5 text-gray-400" />
-              </button>
-            )}
+            <Search className="icon-left" />
 
             {showSearchResults && (
-              <div className="absolute mt-2 w-full bg-white border rounded-lg shadow">
-                {searchResults.map((u) => (
+              <div className="dropdown">
+                {filteredUsers.map((u) => (
                   <div
                     key={u.id}
-                    className="px-4 py-3 hover:bg-gray-50 cursor-pointer"
+                    onClick={() => fetchUser(u.id)}
+                    className="dropdown-item"
                   >
-                    <div className="font-medium">{u.name}</div>
-                    <div className="text-sm text-gray-600">{u.role}</div>
+                    {u.name} — {u.role}
                   </div>
                 ))}
               </div>
@@ -272,101 +244,100 @@ export default function AdminUserProfile() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Sidebar */}
-          <div className="bg-white rounded-lg border">
-            <div className="p-6 border-b flex items-center gap-4">
-              <img
-                src={userData.avatar}
-                className="w-14 h-14 rounded-full"
-              />
-              <div>
-                <div className="font-semibold">{userData.name}</div>
-                <div className="text-sm text-gray-600">{userData.role}</div>
-              </div>
-              <MoreHorizontal className="ml-auto text-gray-400" />
-            </div>
-
-            <div className="p-4">
-              {navigationSections.map((section) => (
-                <div key={section.title}>
-                  <h4 className="text-xs font-semibold text-gray-500 mb-3">
-                    {section.title}
-                  </h4>
-                  {section.items.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <button
-                        key={item.id}
-                        onClick={() => setActivePage(item.id)}
-                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg ${
-                          activePage === item.id
-                            ? "bg-blue-50 text-blue-700"
-                            : "hover:bg-gray-100"
-                        }`}
-                      >
-                        <Icon size={16} />
-                        {item.label}
-                        {activePage === item.id && (
-                          <ChevronRight className="ml-auto w-4 h-4" />
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              ))}
+        {selectedUser && (
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <Sidebar
+              activePage={activePage}
+              setActivePage={setActivePage}
+              user={selectedUser}
+            />
+            <div className="lg:col-span-3 bg-white p-8 rounded-lg border">
+              <ActiveComponent />
             </div>
           </div>
-
-          {/* Content */}
-          <div className="lg:col-span-3 bg-white rounded-lg border p-8">
-            <ActiveComponent />
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
 }
 
-/* ================= REUSABLE INPUTS ================= */
+/* ================= SIDEBAR ================= */
 
-function Input({ label, ...props }: any) {
+function Sidebar({ activePage, setActivePage, user }: any) {
+  return (
+    <div className="bg-white border rounded-lg">
+      <div className="p-6 border-b flex items-center gap-4">
+        <img src={user.avatar} className="w-14 h-14 rounded-full" />
+        <div>
+          <div className="font-semibold">{user.name}</div>
+          <div className="text-sm text-gray-600">{user.role}</div>
+        </div>
+        <MoreHorizontal className="ml-auto text-gray-400" />
+      </div>
+
+      {[
+        { id: "personal", label: "User Profile", icon: User },
+        { id: "account", label: "Account Status", icon: Activity },
+        { id: "security", label: "Security", icon: Lock }
+      ].map((item) => (
+        <button
+          key={item.id}
+          onClick={() => setActivePage(item.id)}
+          className={`sidebar-btn ${activePage === item.id && "active"}`}
+        >
+          <item.icon size={16} />
+          {item.label}
+          {activePage === item.id && <ChevronRight className="ml-auto" />}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/* ================= INPUTS ================= */
+
+/* ================= INPUTS ================= */
+
+function Input({
+  label,
+  value,
+  onChange
+}: {
+  label: string;
+  value: string;
+  onChange: (val: string) => void; // <--- typed val as string
+}) {
   return (
     <div>
-      <label className="block text-sm font-medium mb-1">{label}</label>
+      <label className="label">{label}</label>
       <input
-        {...props}
-        className="w-full px-4 py-2 border rounded-lg"
+        className="input"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
       />
     </div>
   );
 }
 
-function Select({ label, options, defaultValue }: any) {
-  return (
-    <div>
-      <label className="block text-sm font-medium mb-1">{label}</label>
-      <select
-        defaultValue={defaultValue}
-        className="w-full px-4 py-2 border rounded-lg"
-      >
-        {options.map((o: string) => (
-          <option key={o}>{o}</option>
-        ))}
-      </select>
-    </div>
-  );
-}
-
-function Textarea({ label, ...props }: any) {
+function Textarea({
+  label,
+  value,
+  onChange
+}: {
+  label: string;
+  value: string;
+  onChange: (val: string) => void; // <--- typed val as string
+}) {
   return (
     <div className="md:col-span-2">
-      <label className="block text-sm font-medium mb-1">{label}</label>
+      <label className="label">{label}</label>
       <textarea
-        {...props}
+        className="input"
         rows={4}
-        className="w-full px-4 py-2 border rounded-lg"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
       />
     </div>
   );
 }
+
