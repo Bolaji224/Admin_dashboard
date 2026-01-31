@@ -1,19 +1,17 @@
 import axios from "axios";
 
-// 🔹 API key version (no cookies)
+// 🔹 Admin API axios instance (NO .env)
 const instance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL
-  ? import.meta.env.VITE_API_URL + "/api"
-  : "http://localhost:8000/api",
-  withCredentials: false, // don't send cookies
+  baseURL: "http://localhost:8000/api",
+  withCredentials: false,
   headers: {
-    "x-api-key": "secret123", // API key for admin middleware
+    "Content-Type": "application/json",
+    "x-api-key": "secret123",
   },
 });
 
-// Optional: If you want to override per-request headers later
+// 🔹 Optional: attach bearer token if it exists
 instance.interceptors.request.use((config) => {
-  // If you have token in localStorage for something else
   const token = localStorage.getItem("token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;

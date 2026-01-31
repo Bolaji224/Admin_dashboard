@@ -1,78 +1,29 @@
-import _ from "lodash";
-import { useState, useRef } from "react";
-import {
-  Printer,
-  FileText,
-  Search,
-  Plus,
-  CheckSquare,
-  Trash2,
-  XCircle,
-  ChevronsLeft,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsRight,
-  AlertCircle,
-  MessageSquare,
-  Eye,
-} from "lucide-react";
-
-// Mock data for disputes
-const mockDisputes = Array.from({ length: 9 }, (_, i) => ({
-  id: `DSP${4000 + i}`,
-  user: {
-    name: `User ${i + 1}`,
-    email: `user${i + 1}@example.com`,
-    avatar: `https://i.pravatar.cc/150?img=${i + 20}`,
-  },
-  orderNumber: `ORD${10000 + Math.floor(Math.random() * 90000)}`,
-  category: [
-    "Product Quality",
-    "Delivery Issue",
-    "Payment Problem",
-    "Service Complaint",
-    "Wrong Item",
-    "Damaged Item",
-  ][Math.floor(Math.random() * 6)],
-  priority: ["Low", "Medium", "High", "Urgent"][
-    Math.floor(Math.random() * 4)
-  ],
-  amount: `$${(Math.random() * 500 + 50).toFixed(2)}`,
-  createdDate: new Date(
-    Date.now() - Math.random() * 14 * 24 * 60 * 60 * 1000
-  ).toLocaleDateString(),
-  status: ["Pending", "Under Review", "Resolved", "Closed"][
-    Math.floor(Math.random() * 4)
-  ],
-  messages: Math.floor(Math.random() * 15 + 1),
-  assignedTo: ["Admin A", "Admin B", "Admin C", "Unassigned"][
-    Math.floor(Math.random() * 4)
-  ],
-  description: "Customer complaint regarding order...",
-}));
+import { useState, useRef, useEffect } from "react";
+import axios from "@/utils/axios"; // make sure this points to your Axios instance
 
 function Main() {
-  const [resolveConfirmationModal, setResolveConfirmationModal] =
-    useState(false);
+  const [resolveConfirmationModal, setResolveConfirmationModal] = useState(false);
   const resolveButtonRef = useRef<HTMLButtonElement | null>(null);
   const [selectedJobs, setSelectedJobs] = useState<number[]>([]);
+  const [disputes, setDisputes] = useState<any[]>([]);
 
+  // Select / deselect all rows
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
-      setSelectedJobs(mockDisputes.map((_, i) => i));
+      setSelectedJobs(disputes.map((_, i) => i));
     } else {
       setSelectedJobs([]);
     }
   };
 
+  // Select / deselect single row
   const handleSelectJob = (index: number) => {
-    if (selectedJobs.includes(index)) {
-      setSelectedJobs(selectedJobs.filter((i) => i !== index));
-    } else {
-      setSelectedJobs([...selectedJobs, index]);
-    }
+    setSelectedJobs((prev) =>
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
+    );
   };
 
+  // Priority badge colors
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "Urgent":
@@ -88,6 +39,7 @@ function Main() {
     }
   };
 
+  // Status text colors
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Pending":
@@ -103,43 +55,61 @@ function Main() {
     }
   };
 
+  // Fetch disputes from backend
+  const fetchDisputes = async () => {
+    try {
+      const res = await axios.get("/admin/reports"); // endpoint returning { fullname, email, priority, status, description }
+      setDisputes(res.data.data || []);
+    } catch (error) {
+      console.error("Failed to fetch disputes", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchDisputes();
+  }, []);
+
   return (
-    <>
-      <h2 className="mt-10 text-lg font-medium intro-y">Dispute List</h2>
+    <div className="p-5">
+      <h2 className="mt-10 text-lg font-medium">Dispute List</h2>
 
-      <div className="grid grid-cols-12 gap-6 mt-5">
-        <div className="flex flex-wrap items-center col-span-12 mt-2 intro-y xl:flex-nowrap">
-          <button className="mr-2 shadow-md bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium">
-            Assign Selected
-          </button>
-
-          <div className="hidden mx-auto xl:block text-slate-500">
-            Showing 1 to 10 of {mockDisputes.length} entries
-          </div>
+      <div className="flex flex-wrap items-center justify-between mt-5 mb-3">
+        <button className="shadow-md bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium">
+          Assign Selected
+        </button>
+        <div className="text-slate-500 hidden xl:block">
+          Showing 1 to {disputes.length} of {disputes.length} entries
         </div>
+      </div>
 
-        <div className="col-span-12 overflow-auto intro-y 2xl:overflow-visible">
-          <table className="w-full border-separate border-spacing-y-[10px] -mt-2">
-            <thead>
+      <div className="overflow-auto">
+        <table className="w-full border-separate border-spacing-y-2">
+          <thead>
+            <tr>
+              <th className="px-5 py-3 text-left font-medium">
+                <input
+                  type="checkbox"
+                  onChange={handleSelectAll}
+                  checked={selectedJobs.length === disputes.length && disputes.length > 0}
+                />
+              </th>
+              <th className="px-5 py-3 text-left font-medium">FULL NAME</th>
+              <th className="px-5 py-3 text-center font-medium">PRIORITY</th>
+              <th className="px-5 py-3 text-center font-medium">STATUS</th>
+              <th className="px-5 py-3 text-left font-medium">DESCRIPTION</th>
+              <th className="px-5 py-3 text-center font-medium">ACTIONS</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {disputes.length === 0 ? (
               <tr>
-                <th className="px-5 py-3 text-left font-medium">
-                  <input
-                    type="checkbox"
-                    onChange={handleSelectAll}
-                    checked={selectedJobs.length === mockDisputes.length}
-                  />
-                </th>
-                <th className="px-5 py-3 text-left font-medium">USER</th>
-                <th className="px-5 py-3 text-center font-medium">CATEGORY</th>
-                <th className="px-5 py-3 text-center font-medium">PRIORITY</th>
-                <th className="px-5 py-3 text-center font-medium">STATUS</th>
-                <th className="px-5 py-3 text-center font-medium">AMOUNT</th>
-                <th className="px-5 py-3 text-center font-medium">ACTIONS</th>
+                <td colSpan={7} className="text-center py-5 text-gray-500">
+                  No disputes found.
+                </td>
               </tr>
-            </thead>
-
-            <tbody>
-              {mockDisputes.map((dispute, index) => (
+            ) : (
+              disputes.map((dispute, index) => (
                 <tr key={index}>
                   <td className="bg-white px-5 py-3">
                     <input
@@ -149,36 +119,25 @@ function Main() {
                     />
                   </td>
 
-                  <td className="bg-white px-5 py-3">
-                    <div className="font-medium">{dispute.user.name}</div>
-                    <div className="text-xs text-slate-500">
-                      {dispute.user.email}
-                    </div>
-                  </td>
+                 <td>
+  <div className="font-medium">{dispute.full_name}</div>
+  <div className="text-xs text-slate-500">{dispute.email}</div>
+</td>
 
                   <td className="bg-white px-5 py-3 text-center">
-                    {dispute.category}
-                  </td>
-
-                  <td className="bg-white px-5 py-3 text-center">
-                    <span
-                      className={`px-2 py-1 text-xs rounded ${getPriorityColor(
-                        dispute.priority
-                      )}`}
-                    >
-                      {dispute.priority}
+                    <span className={`px-2 py-1 text-xs rounded ${getPriorityColor(dispute.priority)}`}>
+                      {dispute.priority || "-"}
                     </span>
                   </td>
 
                   <td className="bg-white px-5 py-3 text-center">
                     <span className={getStatusColor(dispute.status)}>
-                      {dispute.status}
-                    </span>
+  {dispute.status || "Pending"}
+</span>
+
                   </td>
 
-                  <td className="bg-white px-5 py-3 text-center">
-                    {dispute.amount}
-                  </td>
+                  <td className="bg-white px-5 py-3">{dispute.description || "-"}</td>
 
                   <td className="bg-white px-5 py-3 text-center">
                     <button
@@ -189,32 +148,35 @@ function Main() {
                     </button>
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
 
+      {/* Resolve Modal */}
       {resolveConfirmationModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6 text-center">
             <div className="text-xl mb-4">Resolve Dispute?</div>
-            <button
-              onClick={() => setResolveConfirmationModal(false)}
-              className="mr-2 px-4 py-2 border rounded"
-            >
-              Cancel
-            </button>
-            <button
-              ref={resolveButtonRef}
-              className="px-4 py-2 bg-green-600 text-white rounded"
-            >
-              Resolve
-            </button>
+            <div className="flex justify-center gap-2">
+              <button
+                onClick={() => setResolveConfirmationModal(false)}
+                className="px-4 py-2 border rounded"
+              >
+                Cancel
+              </button>
+              <button
+                ref={resolveButtonRef}
+                className="px-4 py-2 bg-green-600 text-white rounded"
+              >
+                Resolve
+              </button>
+            </div>
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
 

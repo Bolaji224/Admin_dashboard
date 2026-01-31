@@ -100,11 +100,6 @@ const menu: Array<Menu | "divider"> = [
         pathname: "/crud-data-list",
         title: "Disputes",
       },
-      {
-        icon: "Activity",
-        pathname: "/crud-form",
-        title: "Fraud Reports",
-      },
     ],
   },
  
