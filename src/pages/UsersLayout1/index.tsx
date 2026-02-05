@@ -25,24 +25,23 @@ function Main() {
 
 
   // 🔹 FETCH EMPLOYERS
-  const fetchEmployers = async () => {
-    setLoading(true);
-    try {
-      const res = await axios.get("/admin/employers", {
-        headers: {
-          "x-api-key": "secret123", // must match your Laravel .env
-        },
-      });
+ const fetchEmployers = async () => {
+  setLoading(true);
+  try {
+    const res = await axios.get("/v1/admin/employers", {  // ✅ Added /v1
+      headers: {
+        "x-api-key": "secret123",
+      },
+    });
 
-      // Ensure data is an array
-      setEmployers(Array.isArray(res.data?.data) ? res.data.data : []);
-    } catch (error: any) {
-      console.error("API ERROR:", error.response?.data || error.message);
-      setEmployers([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+    setEmployers(Array.isArray(res.data?.data) ? res.data.data : []);
+  } catch (error: any) {
+    console.error("API ERROR:", error.response?.data || error.message);
+    setEmployers([]);
+  } finally {
+    setLoading(false);
+  }
+};
 
   // 🔹 CALL API ON LOAD
   useEffect(() => {

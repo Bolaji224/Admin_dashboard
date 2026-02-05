@@ -57,13 +57,24 @@ function Main() {
 
   // Fetch disputes from backend
   const fetchDisputes = async () => {
-    try {
-      const res = await axios.get("/admin/reports"); // endpoint returning { fullname, email, priority, status, description }
-      setDisputes(res.data.data || []);
-    } catch (error) {
-      console.error("Failed to fetch disputes", error);
-    }
-  };
+  console.log("🔍 Fetching disputes..."); // Debug
+  try {
+    const res = await axios.get("/v1/admin/reports", {
+      headers: {
+        "x-api-key": "secret123",
+      },
+    });
+    
+    console.log("✅ Response received:", res.data); // Debug - see the actual response
+    console.log("📊 Data structure:", res.data.data); // Debug - see the data array
+    
+    // Check your state update logic here
+    setDisputes(res.data.data || []); // Adjust based on response structure
+    
+  } catch (err) {
+    console.error("❌ Failed to fetch disputes:", err);
+  }
+};
 
   useEffect(() => {
     fetchDisputes();
