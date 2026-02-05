@@ -28,22 +28,22 @@ function Main() {
 
   /* ===================== FETCH ===================== */
   const fetchFreelancers = async () => {
-    setLoading(true);
-    try {
-      const res = await axios.get("/admin/freelancers", {
-        headers: {
-          "x-api-key": "secret123",
-        },
-      });
+  setLoading(true);
+  try {
+    const res = await axios.get("/v1/admin/freelancers", {  // ✅ Added /v1
+      headers: {
+        "x-api-key": "secret123",
+      },
+    });
 
-      setFreelancers(Array.isArray(res.data?.data) ? res.data.data : []);
-    } catch (error: any) {
-      console.error("API ERROR:", error.response?.data || error.message);
-      setFreelancers([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+    setFreelancers(Array.isArray(res.data?.data) ? res.data.data : []);
+  } catch (error: any) {
+    console.error("API ERROR:", error.response?.data || error.message);
+    setFreelancers([]);
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchFreelancers();

@@ -80,16 +80,7 @@ const menu: Array<Menu | "divider"> = [
       },
     ],
   },
-  {
-    icon: "MessageSquare",
-    pathname: "/chat",
-    title: "Chat",
-  },
-  {
-    icon: "Calendar",
-    pathname: "/calendar",
-    title: "Calendar",
-  },
+  
   "divider",
   {
     icon: "FilePenLine",
