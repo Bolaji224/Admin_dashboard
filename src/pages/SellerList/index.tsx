@@ -41,28 +41,28 @@ export default function Main() {
   /* =====================
      FETCH JOBS
   ===================== */
-  const fetchJobs = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("http://localhost:8000/api/admin/jobs", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-        },
-      });
+const fetchJobs = async () => {
+  setLoading(true);
+  try {
+    const res = await fetch("http://localhost:8000/api/v1/admin/jobs", {  // ✅ Added /v1
+      headers: {
+        "x-api-key": "secret123",  // ✅ Changed to API key (must match your other admin routes)
+        Accept: "application/json",
+      },
+    });
 
-      const data = await res.json();
-      if (data.status === "success") {
-        setJobs(data.data);
-      } else {
-        setJobs([]);
-      }
-    } catch (err) {
-      console.error("Failed to fetch jobs", err);
-    } finally {
-      setLoading(false);
+    const data = await res.json();
+    if (data.status === "success") {
+      setJobs(data.data);
+    } else {
+      setJobs([]);
     }
-  };
+  } catch (err) {
+    console.error("Failed to fetch jobs", err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchJobs();
@@ -85,12 +85,13 @@ export default function Main() {
      ACTIONS
   ===================== */
   const approveJobs = async () => {
-    if (!selectedJobs.length) return;
+  if (!selectedJobs.length) return;
 
-    await fetch("http://localhost:8000/api/admin/jobs/approve", {
+  try {
+    await fetch("http://localhost:8000/api/v1/admin/jobs/approve", {  // ✅ Added /v1
       method: "POST",
       headers: {
-        Authorization: `Bearer ${token}`,
+        "x-api-key": "secret123",  // ✅ Changed to API key
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ job_ids: selectedJobs }),
@@ -98,13 +99,16 @@ export default function Main() {
 
     setSelectedJobs([]);
     fetchJobs();
-  };
-
+  } catch (err) {
+    console.error("Failed to approve jobs:", err);
+  }
+};
   const deleteJobs = async () => {
-    await fetch("http://localhost:8000/api/admin/jobs/delete", {
+  try {
+    await fetch("http://localhost:8000/api/v1/admin/jobs/delete", {  // ✅ Added /v1
       method: "POST",
       headers: {
-        Authorization: `Bearer ${token}`,
+        "x-api-key": "secret123",  // ✅ Changed to API key
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ job_ids: selectedJobs }),
@@ -113,7 +117,10 @@ export default function Main() {
     setShowDeleteModal(false);
     setSelectedJobs([]);
     fetchJobs();
-  };
+  } catch (err) {
+    console.error("Failed to delete jobs:", err);
+  }
+};
 
   /* =====================
      HELPERS
