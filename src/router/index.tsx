@@ -70,15 +70,27 @@ import Slider from "../pages/Slider";
 import ImageZoom from "../pages/ImageZoom";
 
 import Layout from "../themes";
+import ProtectedAdminRoute from "@/components/Admin/ProtectedAdminRoute";
+import AdminLogin from "../pages/Login";
 
 function Router() {
   const routes = [
+
     {
-      path: "/",
-      element: <Layout />,
+      path: "/admin/login",
+      element: <AdminLogin />,
+    },
+    {
+      path: "/admin",
+      element: <ProtectedAdminRoute/>,
       children: [
         {
-          path: "/",
+          path: "",
+          element: <Layout />,
+
+          children: [
+        {
+          path: "dashboard",
           element: <DashboardOverview1 />,
         },
         {
@@ -343,9 +355,7 @@ function Router() {
         },
       ],
     },
-    {
-      path: "/login",
-      element: <Login />,
+  ],
     },
     {
       path: "/register",
