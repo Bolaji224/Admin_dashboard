@@ -7,7 +7,7 @@ const menu: Array<Menu | "divider"> = [
     subMenu: [
       {
         icon: "Activity",
-        pathname: "/",
+        pathname: "/admin/dashboard",
         title: "Overview 1",
       },
     ],
@@ -18,12 +18,12 @@ const menu: Array<Menu | "divider"> = [
     subMenu: [
       {
         icon: "Activity",
-        pathname: "/users-layout-1",
+        pathname: "/admin/users-layout-1",
         title: "Employers",
       },
       {
         icon: "Activity",
-        pathname: "/users-layout-3",
+        pathname: "/admin/users-layout-3",
         title: "Freelancers",
       },
     ],
@@ -39,12 +39,12 @@ const menu: Array<Menu | "divider"> = [
         subMenu: [
           {
             icon: "Zap",
-            pathname: "/product-list",
+            pathname: "/admin/product-list",
             title: "Pending withdrawals",
           },
           {
             icon: "Zap",
-            pathname: "/product-grid",
+            pathname: "/admin/product-grid",
             title: "Pending Deposits",
           },
         ],
@@ -56,12 +56,12 @@ const menu: Array<Menu | "divider"> = [
         subMenu: [
           {
             icon: "Zap",
-            pathname: "/transaction-list",
+            pathname: "/admin/transaction-list",
             title: "Transaction List",
           },
           {
             icon: "Zap",
-            pathname: "/transaction-detail",
+            pathname: "/admin/transaction-detail",
             title: "Transaction Detail",
           },
         ],
@@ -73,7 +73,7 @@ const menu: Array<Menu | "divider"> = [
         subMenu: [
           {
             icon: "Zap",
-            pathname: "/seller-list",
+            pathname: "/admin/seller-list",
             title: "Job List",
           },
         ],
@@ -82,12 +82,12 @@ const menu: Array<Menu | "divider"> = [
   },
   {
     icon: "MessageSquare",
-    pathname: "/chat",
+    pathname: "/admin/chat",
     title: "Chat",
   },
   {
     icon: "Calendar",
-    pathname: "/calendar",
+    pathname: "/admin/calendar",
     title: "Calendar",
   },
   "divider",
@@ -97,7 +97,7 @@ const menu: Array<Menu | "divider"> = [
     subMenu: [
       {
         icon: "Activity",
-        pathname: "/crud-data-list",
+        pathname: "/admin/crud-data-list",
         title: "Disputes",
       },
     ],
@@ -109,7 +109,7 @@ const menu: Array<Menu | "divider"> = [
     subMenu: [
       {
         icon: "Activity",
-        pathname: "/profile-overview-3",
+        pathname: "/admin/profile-overview-3",
         title: "User Edits",
       },
     ],
@@ -130,12 +130,12 @@ const menu: Array<Menu | "divider"> = [
       },
       {
         icon: "Activity",
-        pathname: "/update-profile",
+        pathname: "/admin/update-profile",
         title: "Update profile",
       },
       {
         icon: "Activity",
-        pathname: "/change-password",
+        pathname: "/admin/change-password",
         title: "Change Password",
       },
     ],
