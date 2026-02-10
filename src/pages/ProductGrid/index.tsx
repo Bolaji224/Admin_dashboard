@@ -38,6 +38,11 @@ interface Payment {
   employer_id: number;
   candidate_id: number;
   amount: string;
+  employer_pays_total?: string;
+  freelancer_receives?: string;
+  platform_commission?: string;
+  platform_fee?: string;
+  platform_vat?: string;
   type: 'escrow' | 'milestone';
   status: 'pending' | 'completed' | 'failed';
   reference: string;
@@ -56,6 +61,85 @@ interface PaginatedResponse {
   total: number;
   per_page: number;
 }
+
+// Fee Breakdown Badge Component
+const FeeBreakdownBadge: React.FC<{ payment: Payment }> = ({ payment }) => {
+  const [showDetails, setShowDetails] = useState(false);
+  
+  const baseAmount = parseFloat(payment.amount);
+  const employerTotal = payment.employer_pays_total ? parseFloat(payment.employer_pays_total) : baseAmount;
+  const freelancerReceives = payment.freelancer_receives ? parseFloat(payment.freelancer_receives) : baseAmount;
+  const platformCommission = payment.platform_commission ? parseFloat(payment.platform_commission) : 0;
+  const platformFee = payment.platform_fee ? parseFloat(payment.platform_fee) : 0;
+  const platformVAT = payment.platform_vat ? parseFloat(payment.platform_vat) : 0;
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setShowDetails(!showDetails)}
+        className="text-xs text-blue-600 hover:text-blue-800 underline"
+      >
+        {showDetails ? 'Hide' : 'Show'} Fees
+      </button>
+
+      {showDetails && (
+        <div className="absolute z-10 top-6 right-0 bg-white border border-gray-300 rounded-lg shadow-lg p-3 text-xs w-64">
+          <div className="font-semibold text-gray-800 mb-2 border-b pb-1">Fee Breakdown</div>
+          
+          {/* Base Amount */}
+          <div className="flex justify-between text-gray-700 mb-1">
+            <span>Base Amount:</span>
+            <span className="font-medium">₦{baseAmount.toLocaleString()}</span>
+          </div>
+
+          {/* Employer Side */}
+          <div className="bg-blue-50 border border-blue-200 rounded p-2 mt-2 mb-2">
+            <div className="font-semibold text-blue-800 mb-1 text-[10px]">EMPLOYER PAYS</div>
+            <div className="flex justify-between text-gray-600">
+              <span>Platform Fee (5%):</span>
+              <span>₦{platformFee.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between text-gray-600">
+              <span>VAT on Fee:</span>
+              <span>₦{(platformFee * 0.075).toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between font-semibold text-blue-700 mt-1 pt-1 border-t border-blue-300">
+              <span>Total Paid:</span>
+              <span>₦{employerTotal.toLocaleString()}</span>
+            </div>
+          </div>
+
+          {/* Freelancer Side */}
+          <div className="bg-green-50 border border-green-200 rounded p-2">
+            <div className="font-semibold text-green-800 mb-1 text-[10px]">FREELANCER RECEIVES</div>
+            <div className="flex justify-between text-gray-600">
+              <span>Commission (20%):</span>
+              <span className="text-red-600">-₦{platformCommission.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between text-gray-600">
+              <span>VAT on Commission:</span>
+              <span className="text-red-600">-₦{(platformCommission * 0.075).toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between font-semibold text-green-700 mt-1 pt-1 border-t border-green-300">
+              <span>Net Received:</span>
+              <span>₦{freelancerReceives.toLocaleString()}</span>
+            </div>
+          </div>
+
+          {/* Platform Total */}
+          {platformVAT > 0 && (
+            <div className="mt-2 pt-2 border-t text-gray-500">
+              <div className="flex justify-between">
+                <span>Platform Total:</span>
+                <span className="font-medium">₦{(platformCommission + platformFee + platformVAT).toLocaleString()}</span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const AdminPaymentsPanel: React.FC = () => {
   const [payments, setPayments] = useState<Payment[]>([]);
@@ -115,7 +199,11 @@ const AdminPaymentsPanel: React.FC = () => {
       });
 
       if (response?.data?.status === 'success') {
-        alert(`✓ Payment approved!\n₦${parseFloat(payment.amount).toLocaleString()} released to ${payment.candidate?.first_name}`);
+        const freelancerReceives = payment.freelancer_receives 
+          ? parseFloat(payment.freelancer_receives).toLocaleString()
+          : parseFloat(payment.amount).toLocaleString();
+        
+        alert(`✓ Payment approved!\n₦${freelancerReceives} released to ${payment.candidate?.first_name}`);
         setApproveConfirmation(null);
         fetchPayments(currentPage);
       } else {
@@ -156,12 +244,12 @@ const AdminPaymentsPanel: React.FC = () => {
     const timer = setTimeout(() => {
       setSearchQuery(searchTerm);
       setCurrentPage(1);
-    }, 500); // Wait 500ms after user stops typing
+    }, 500);
 
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const filteredPayments = payments; // All filtering is now done on backend
+  const filteredPayments = payments;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -317,9 +405,22 @@ const AdminPaymentsPanel: React.FC = () => {
                     </td>
 
                     <td className="bg-white text-center shadow-[5px_3px_5px_#00000005] px-3 py-3">
-                      <span className="font-semibold text-base text-green-600 whitespace-nowrap">
-                        ₦{parseFloat(payment.amount).toLocaleString()}
-                      </span>
+                      <div className="space-y-1">
+                        <div className="font-semibold text-base text-green-600 whitespace-nowrap">
+                          ₦{parseFloat(payment.amount).toLocaleString()}
+                        </div>
+                        {payment.employer_pays_total && (
+                          <div className="text-xs text-gray-500">
+                            Employer paid: ₦{parseFloat(payment.employer_pays_total).toLocaleString()}
+                          </div>
+                        )}
+                        {payment.freelancer_receives && (
+                          <div className="text-xs text-blue-600">
+                            Candidate gets: ₦{parseFloat(payment.freelancer_receives).toLocaleString()}
+                          </div>
+                        )}
+                        <FeeBreakdownBadge payment={payment} />
+                      </div>
                     </td>
 
                     <td className="bg-white text-center shadow-[5px_3px_5px_#00000005] px-3 py-3">
@@ -429,10 +530,43 @@ const AdminPaymentsPanel: React.FC = () => {
 
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Amount:</span>
-                    <span className="text-lg font-semibold text-green-600">
-                      ₦{parseFloat(payment.amount).toLocaleString()}
-                    </span>
+                    <div className="text-right">
+                      <div className="text-lg font-semibold text-green-600">
+                        ₦{parseFloat(payment.amount).toLocaleString()}
+                      </div>
+                      {payment.employer_pays_total && (
+                        <div className="text-xs text-gray-500">
+                          Paid: ₦{parseFloat(payment.employer_pays_total).toLocaleString()}
+                        </div>
+                      )}
+                      {payment.freelancer_receives && (
+                        <div className="text-xs text-blue-600">
+                          Gets: ₦{parseFloat(payment.freelancer_receives).toLocaleString()}
+                        </div>
+                      )}
+                    </div>
                   </div>
+
+                  {/* Fee Breakdown in Mobile */}
+                  {(payment.platform_commission || payment.platform_fee) && (
+                    <div className="mt-2 bg-gray-50 p-2 rounded border border-gray-200">
+                      <div className="text-xs font-semibold text-gray-700 mb-1">Fee Breakdown</div>
+                      <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                        {payment.platform_fee && (
+                          <div>
+                            <span className="text-gray-500">Employer Fee:</span>
+                            <div className="font-medium">₦{parseFloat(payment.platform_fee).toLocaleString()}</div>
+                          </div>
+                        )}
+                        {payment.platform_commission && (
+                          <div>
+                            <span className="text-gray-500">Platform Cut:</span>
+                            <div className="font-medium">₦{parseFloat(payment.platform_commission).toLocaleString()}</div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   <div className="flex justify-between text-sm items-center">
                     <span className="text-gray-500">Type:</span>
@@ -565,13 +699,24 @@ const AdminPaymentsPanel: React.FC = () => {
               <CheckSquare className="w-16 h-16 mx-auto mt-3 text-green-600" />
               <div className="mt-5 text-2xl font-semibold">Approve Payment?</div>
               <div className="mt-2 text-slate-500">
-                Release ₦{parseFloat(approveConfirmation.amount).toLocaleString()} to{' '}
+                Release{' '}
+                <strong className="text-green-600">
+                  ₦{approveConfirmation.freelancer_receives 
+                    ? parseFloat(approveConfirmation.freelancer_receives).toLocaleString()
+                    : parseFloat(approveConfirmation.amount).toLocaleString()}
+                </strong>{' '}
+                to{' '}
                 <strong>
                   {approveConfirmation.candidate?.first_name}{' '}
                   {approveConfirmation.candidate?.last_name}
                 </strong>
                 ?
               </div>
+              {approveConfirmation.employer_pays_total && (
+                <div className="mt-3 text-xs text-gray-500">
+                  (Employer paid: ₦{parseFloat(approveConfirmation.employer_pays_total).toLocaleString()})
+                </div>
+              )}
             </div>
             <div className="px-5 pb-8 text-center flex gap-3 justify-center">
               <button
