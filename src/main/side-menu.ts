@@ -49,7 +49,7 @@ const menu: Array<Menu | "divider"> = [
           },
         ],
       },
-      {
+        {
         icon: "Activity",
         pathname: "/transactions",
         title: "Transactions",
@@ -79,11 +79,6 @@ const menu: Array<Menu | "divider"> = [
         ],
       },
     ],
-  },
-  {
-    icon: "MessageSquare",
-    pathname: "/admin/chat",
-    title: "Chat",
   },
   {
     icon: "Calendar",
