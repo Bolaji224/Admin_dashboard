@@ -23,6 +23,7 @@ import CrudForm from "../pages/CrudForm";
 import UsersLayout1 from "../pages/UsersLayout1";
 import UsersLayout2 from "../pages/UsersLayout2";
 import UsersLayout3 from "../pages/UsersLayout3";
+import Freelancers from "../pages/Freelancers";
 import ProfileOverview1 from "../pages/ProfileOverview1";
 import ProfileOverview2 from "../pages/ProfileOverview2";
 import ProfileOverview3 from "../pages/ProfileOverview3";
@@ -184,6 +185,14 @@ function Router() {
         {
           path: "users-layout-3",
           element: <UsersLayout3 />,
+        },
+        {
+          path: "freelancers",
+          element: <Freelancers />,
+        },
+        {
+          path: "freelancers/:id",
+          element: <Freelancers />,
         },
         {
           path: "profile-overview-1",
