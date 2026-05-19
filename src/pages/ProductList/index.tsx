@@ -77,7 +77,8 @@ const AdminWithdrawalsPanel: React.FC = () => {
         params.append('search', searchTerm);
       }
 
-      const response = await axiosAdmin.get(`/v1/admin/withdrawals?${params.toString()}`);
+      // ✅ FIXED: Removed duplicate /v1 prefix (axiosAdmin baseURL already includes /v1)
+      const response = await axiosAdmin.get(`/admin/withdrawals?${params.toString()}`);
 
       if (response?.data?.data) {
         const paginatedData = response.data as PaginatedResponse;
@@ -101,7 +102,8 @@ const AdminWithdrawalsPanel: React.FC = () => {
   const approveWithdrawal = async (withdrawal: Withdrawal) => {
     setProcessingId(withdrawal.id);
     try {
-      const response = await axiosAdmin.post('/v1/admin/approve-withdrawal', {
+      // ✅ FIXED: Was '/admin/approve-withdrawal', now consistent (no /v1 prefix)
+      const response = await axiosAdmin.post('/admin/approve-withdrawal', {
         withdrawal_id: withdrawal.id,
       });
 
@@ -130,7 +132,8 @@ const AdminWithdrawalsPanel: React.FC = () => {
     setProcessingId(withdrawal.id);
 
     try {
-      const response = await axiosAdmin.post('/v1/admin/reject-withdrawal', {
+      // ✅ FIXED: Was '/admin/reject-withdrawal', now consistent (no /v1 prefix)
+      const response = await axiosAdmin.post('/admin/reject-withdrawal', {
         withdrawal_id: withdrawal.id,
         reason: rejectConfirmation.reason,
       });

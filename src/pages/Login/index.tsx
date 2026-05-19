@@ -21,7 +21,7 @@ function AdminLogin() {
     setLoading(true);
 
     try {
-      const response = await axiosAdmin.post('/v1/admin/login', {
+      const response = await axiosAdmin.post('/admin/login', {
         email,
         password,
       });

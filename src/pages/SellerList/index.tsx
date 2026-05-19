@@ -44,7 +44,7 @@ export default function Main() {
 const fetchJobs = async () => {
   setLoading(true);
   try {
-    const res = await fetch("http://localhost:8000/api/v1/admin/jobs", {  // ✅ Added /v1
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/jobs`, {  // ✅ Use baseURL from .env
       headers: {
         "x-api-key": "secret123",  // ✅ Changed to API key (must match your other admin routes)
         Accept: "application/json",
@@ -88,7 +88,7 @@ const fetchJobs = async () => {
   if (!selectedJobs.length) return;
 
   try {
-    await fetch("http://localhost:8000/api/v1/admin/jobs/approve", {  // ✅ Added /v1
+    await fetch(`${import.meta.env.VITE_API_URL}/admin/jobs`, {
       method: "POST",
       headers: {
         "x-api-key": "secret123",  // ✅ Changed to API key
@@ -105,7 +105,7 @@ const fetchJobs = async () => {
 };
   const deleteJobs = async () => {
   try {
-    await fetch("http://localhost:8000/api/v1/admin/jobs/delete", {  // ✅ Added /v1
+    await fetch(`${import.meta.env.VITE_API_URL}/admin/jobs`, {  // ✅ Use baseURL from .env
       method: "POST",
       headers: {
         "x-api-key": "secret123",  // ✅ Changed to API key

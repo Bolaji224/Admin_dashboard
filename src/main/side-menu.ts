@@ -59,11 +59,6 @@ const menu: Array<Menu | "divider"> = [
             pathname: "/admin/transaction-list",
             title: "Transaction List",
           },
-          {
-            icon: "Zap",
-            pathname: "/admin/transaction-detail",
-            title: "Transaction Detail",
-          },
         ],
       },
       {
@@ -79,16 +74,6 @@ const menu: Array<Menu | "divider"> = [
         ],
       },
     ],
-  },
-  {
-    icon: "MessageSquare",
-    pathname: "/admin/chat",
-    title: "Chat",
-  },
-  {
-    icon: "Calendar",
-    pathname: "/admin/calendar",
-    title: "Calendar",
   },
   "divider",
   {

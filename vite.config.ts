@@ -1,6 +1,7 @@
 import { fileURLToPath, URL } from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { visualizer } from "rollup-plugin-visualizer";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -8,11 +9,30 @@ export default defineConfig({
     commonjsOptions: {
       include: ["tailwind.config.js", "node_modules/**"],
     },
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+  // Split each heavy library into its own separate file
+  // so they only load when that page is actually visited
+  if (id.includes('@ckeditor')) return 'chunk-ckeditor'
+  if (id.includes('@fullcalendar')) return 'chunk-fullcalendar'
+  if (id.includes('leaflet')) return 'chunk-leaflet'
+  if (id.includes('tabulator-tables')) return 'chunk-tabulator'
+  if (id.includes('highlight.js')) return 'chunk-highlight'
+  if (id.includes('lucide-react')) return 'chunk-lucide'
+  if (id.includes('lodash')) return 'chunk-lodash'
+  if (id.includes('node_modules')) return 'vendor'
+},
+      },
+    },
   },
   optimizeDeps: {
     include: ["tailwind-config"],
   },
-  plugins: [react()],
+  plugins: [
+    react(),
+    visualizer({ open: true }), // 👈 opens the map in browser after build
+  ],
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
@@ -21,12 +41,10 @@ export default defineConfig({
       ),
     },
   },
-
-  // ✅ ADD THIS
   server: {
     proxy: {
       "/api": {
-        target: "http://localhost:8000",
+        target: "https://qfshaven.site",
         changeOrigin: true,
         secure: false,
       },
