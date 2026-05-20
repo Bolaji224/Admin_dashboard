@@ -3,11 +3,13 @@ import { getAdminToken, logoutAdmin } from "./adminAuth";
 
 // 🔹 Admin API axios instance (NO .env)
 const instance = axios.create({
+
   baseURL: import.meta.env.VITE_API_URL,
+
   withCredentials: false,
   headers: {
     "Content-Type": "application/json",
-    "x-api-key": "secret123",
+    "x-api-key": import.meta.env.VITE_ADMIN_API_KEY || "secret123",
   },
 });
 

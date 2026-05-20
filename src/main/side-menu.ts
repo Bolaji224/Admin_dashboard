@@ -23,7 +23,7 @@ const menu: Array<Menu | "divider"> = [
       },
       {
         icon: "Activity",
-        pathname: "/admin/users-layout-3",
+        pathname: "/admin/freelancers",
         title: "Freelancers",
       },
     ],
