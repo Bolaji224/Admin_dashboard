@@ -73,14 +73,8 @@ import ImageZoom from "../pages/ImageZoom";
 
 import Layout from "../themes";
 import ProtectedAdminRoute from "@/components/Admin/ProtectedAdminRoute";
-
-function PageLoader() {
-  return (
-    <div className="flex items-center justify-center w-full h-screen">
-      <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-    </div>
-  );
-}
+import AdminLogin from "../pages/Login";
+import CmsManager from "../pages/CmsManager";
 
 function Router() {
   const routes = [
@@ -373,6 +367,10 @@ function Router() {
               element: <ImageZoom />,
             },
           ],
+        },
+        {
+          path: "cms-manager",
+          element: <CmsManager />,
         },
       ],
     },
