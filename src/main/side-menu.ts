@@ -92,6 +92,11 @@ const menu: Array<Menu | "divider"> = [
   },
   "divider",
   {
+    icon: "Layout",
+    pathname: "/admin/cms-manager",
+    title: "CMS Manager",
+  },
+  {
     icon: "FilePenLine",
     title: "Reports",
     subMenu: [
