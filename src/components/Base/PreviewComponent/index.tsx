@@ -11,10 +11,16 @@ import {
 import Button from "../Button";
 import Lucide from "../Lucide";
 import jsBeautify from "js-beautify";
-import hljs from "highlight.js";
-import _ from "lodash";
+import hljs from "highlight.js/lib/core";
+import xml from "highlight.js/lib/languages/xml";
+import javascript from "highlight.js/lib/languages/javascript";
+import replace from "lodash/replace";
 import { twMerge } from "tailwind-merge";
 import clsx from "clsx";
+
+// Register only the languages we actually use
+hljs.registerLanguage("xml", xml); // handles HTML
+hljs.registerLanguage("javascript", javascript);
 
 interface PreviewComponentProps {
   children: ReactElement | ((props: { toggle: () => void }) => ReactNode);
@@ -80,8 +86,8 @@ function Highlight({
       let source = codeEl.innerHTML;
 
       // Format for beautify
-      source = _.replace(source, /&lt;/g, "<");
-      source = _.replace(source, /&gt;/g, ">");
+      source = replace(source, /&lt;/g, "<");
+      source = replace(source, /&gt;/g, ">");
 
       // Beautify code
       source = jsBeautify.html(source);
@@ -90,8 +96,8 @@ function Highlight({
       setCopySource(source);
 
       // Format for highlight.js
-      source = _.replace(source, /</g, "&lt;");
-      source = _.replace(source, />/g, "&gt;");
+      source = replace(source, /</g, "&lt;");
+      source = replace(source, />/g, "&gt;");
 
       codeEl.innerHTML = source;
 

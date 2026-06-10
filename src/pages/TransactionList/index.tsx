@@ -1,210 +1,295 @@
-import _ from "lodash";
+import { useState, useRef, useEffect } from "react";
 import clsx from "clsx";
-import { useState, useRef } from "react";
-import fakerData from "@/utils/faker";
 import Button from "@/components/Base/Button";
 import Pagination from "@/components/Base/Pagination";
-import { FormCheck, FormInput, FormSelect } from "@/components/Base/Form";
+import { FormInput, FormSelect } from "@/components/Base/Form";
 import Lucide from "@/components/Base/Lucide";
 import { Dialog, Menu } from "@/components/Base/Headless";
 import Table from "@/components/Base/Table";
+import { FormCheck } from "@/components/Base/Form";
+import axios from "@/utils/axios";
+import moment from "moment";
 
 function Main() {
-  const [deleteConfirmationModal, setDeleteConfirmationModal] = useState(false);
-  const deleteButtonRef = useRef(null);
+  const [activeTab, setActiveTab] = useState<"deposits" | "withdrawals">("deposits");
+  const [deposits, setDeposits] = useState<any[]>([]);
+  const [withdrawals, setWithdrawals] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [actionModal, setActionModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [actionType, setActionType] = useState<"approve" | "reject" | null>(null);
+  const actionButtonRef = useRef(null);
+
+  const fetchDeposits = async () => {
+    try {
+      const res = await axios.get("/admin/payments", {
+        headers: { "x-api-key": "secret123" },
+      });
+      setDeposits(Array.isArray(res.data?.data) ? res.data.data : []);
+    } catch (err) {
+      console.error("Failed to fetch deposits:", err);
+    }
+  };
+
+  const fetchWithdrawals = async () => {
+    try {
+      const res = await axios.get("/admin/withdrawals", {
+        headers: { "x-api-key": "secret123" },
+      });
+      setWithdrawals(Array.isArray(res.data?.data) ? res.data.data : []);
+    } catch (err) {
+      console.error("Failed to fetch withdrawals:", err);
+    }
+  };
+
+  useEffect(() => {
+    setLoading(true);
+    Promise.all([fetchDeposits(), fetchWithdrawals()]).finally(() =>
+      setLoading(false)
+    );
+  }, []);
+
+  const handleApprove = async () => {
+    if (!selectedItem) return;
+    try {
+      if (activeTab === "deposits") {
+        await axios.post("/admin/approve-payment", { payment_id: selectedItem.id }, {
+          headers: { "x-api-key": "secret123" },
+        });
+        fetchDeposits();
+      } else {
+        await axios.post("/admin/approve-withdrawal", { withdrawal_id: selectedItem.id }, {
+          headers: { "x-api-key": "secret123" },
+        });
+        fetchWithdrawals();
+      }
+    } catch (err) {
+      console.error("Approve failed:", err);
+    } finally {
+      setActionModal(false);
+      setSelectedItem(null);
+    }
+  };
+
+  const handleReject = async () => {
+    if (!selectedItem) return;
+    try {
+      if (activeTab === "deposits") {
+        await axios.post("/admin/reject-payment", { payment_id: selectedItem.id }, {
+          headers: { "x-api-key": "secret123" },
+        });
+        fetchDeposits();
+      } else {
+        await axios.post("/admin/reject-withdrawal", { withdrawal_id: selectedItem.id }, {
+          headers: { "x-api-key": "secret123" },
+        });
+        fetchWithdrawals();
+      }
+    } catch (err) {
+      console.error("Reject failed:", err);
+    } finally {
+      setActionModal(false);
+      setSelectedItem(null);
+    }
+  };
+
+  const activeData = activeTab === "deposits" ? deposits : withdrawals;
+
+  const filteredData = activeData.filter((item) => {
+    const matchSearch =
+      !search ||
+      (item.user?.name ?? "").toLowerCase().includes(search.toLowerCase()) ||
+      (item.reference ?? "").toLowerCase().includes(search.toLowerCase()) ||
+      String(item.id).includes(search);
+
+    const matchStatus =
+      !statusFilter ||
+      (item.status ?? "").toLowerCase() === statusFilter.toLowerCase();
+
+    return matchSearch && matchStatus;
+  });
+
+  const getStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case "approved":
+      case "completed":
+      case "success":
+        return "text-success";
+      case "pending":
+        return "text-warning";
+      case "rejected":
+      case "failed":
+        return "text-danger";
+      default:
+        return "text-slate-500";
+    }
+  };
 
   return (
     <>
       <h2 className="mt-10 text-lg font-medium intro-y">Transaction List</h2>
-      <div className="grid grid-cols-12 gap-6 mt-5">
+
+      {/* ── Tabs ── */}
+      <div className="flex gap-1 mt-5 intro-y">
+        {(["deposits", "withdrawals"] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => { setActiveTab(tab); setSearch(""); setStatusFilter(""); }}
+            className={clsx(
+              "px-5 py-2 rounded-t-lg font-medium text-sm capitalize transition-all",
+              activeTab === tab
+                ? "bg-white border border-b-0 border-slate-200 text-primary shadow-sm dark:bg-darkmode-600"
+                : "bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-darkmode-700"
+            )}
+          >
+            {tab === "deposits" ? "💰 Deposits" : "💸 Withdrawals"}
+            <span className={clsx(
+              "ml-2 px-2 py-0.5 rounded-full text-xs font-semibold",
+              activeTab === tab ? "bg-primary text-white" : "bg-slate-300 text-slate-600"
+            )}>
+              {tab === "deposits" ? deposits.length : withdrawals.length}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-12 gap-6">
+        {/* ── Filters ── */}
         <div className="flex flex-wrap items-center col-span-12 mt-2 intro-y xl:flex-nowrap">
-          <div className="flex w-full sm:w-auto">
+          <div className="flex w-full sm:w-auto gap-2">
             <div className="relative w-48 text-slate-500">
               <FormInput
                 type="text"
                 className="w-48 pr-10 !box"
-                placeholder="Search by invoice..."
+                placeholder="Search..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
               />
-              <Lucide
-                icon="Search"
-                className="absolute inset-y-0 right-0 w-4 h-4 my-auto mr-3"
-              />
+              <Lucide icon="Search" className="absolute inset-y-0 right-0 w-4 h-4 my-auto mr-3" />
             </div>
-            <FormSelect className="ml-2 !box">
-              <option>Status</option>
-              <option>Waiting Payment</option>
-              <option>Confirmed</option>
-              <option>Packing</option>
-              <option>Delivered</option>
-              <option>Completed</option>
+            <FormSelect
+              className="!box"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+              <option value="completed">Completed</option>
             </FormSelect>
           </div>
           <div className="hidden mx-auto xl:block text-slate-500">
-            Showing 1 to 10 of 150 entries
-          </div>
-          <div className="flex items-center w-full mt-3 xl:w-auto xl:mt-0">
-            <Button variant="primary" className="mr-2 shadow-md">
-              <Lucide icon="FileText" className="w-4 h-4 mr-2" /> Export to
-              Excel
-            </Button>
-            <Button variant="primary" className="mr-2 shadow-md">
-              <Lucide icon="FileText" className="w-4 h-4 mr-2" /> Export to PDF
-            </Button>
-            <Menu>
-              <Menu.Button as={Button} className="px-2 !box">
-                <span className="flex items-center justify-center w-5 h-5">
-                  <Lucide icon="Plus" className="w-4 h-4" />
-                </span>
-              </Menu.Button>
-              <Menu.Items className="w-40">
-                <Menu.Item>
-                  <Lucide icon="Printer" className="w-4 h-4 mr-2" /> Print
-                </Menu.Item>
-                <Menu.Item>
-                  <Lucide icon="FileText" className="w-4 h-4 mr-2" /> Export to
-                  Excel
-                </Menu.Item>
-                <Menu.Item>
-                  <Lucide icon="FileText" className="w-4 h-4 mr-2" /> Export to
-                  PDF
-                </Menu.Item>
-              </Menu.Items>
-            </Menu>
+            Showing {filteredData.length} {activeTab}
           </div>
         </div>
-        {/* BEGIN: Data List */}
+
+        {/* ── Table ── */}
         <div className="col-span-12 overflow-auto intro-y 2xl:overflow-visible">
-          <Table className="border-spacing-y-[10px] border-separate -mt-2">
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th className="border-b-0 whitespace-nowrap">
-                  <FormCheck.Input type="checkbox" />
-                </Table.Th>
-                <Table.Th className="border-b-0 whitespace-nowrap">
-                  INVOICE
-                </Table.Th>
-                <Table.Th className="border-b-0 whitespace-nowrap">
-                  BUYER NAME
-                </Table.Th>
-                <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                  STATUS
-                </Table.Th>
-                <Table.Th className="border-b-0 whitespace-nowrap">
-                  PAYMENT
-                </Table.Th>
-                <Table.Th className="text-right border-b-0 whitespace-nowrap">
-                  <div className="pr-16">TOTAL TRANSACTION</div>
-                </Table.Th>
-                <Table.Th className="text-center border-b-0 whitespace-nowrap">
-                  ACTIONS
-                </Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {_.take(fakerData, 9).map((faker, fakerKey) => (
-                <Table.Tr key={fakerKey} className="intro-x">
-                  <Table.Td className="box w-10 whitespace-nowrap rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+          {loading ? (
+            <div className="py-10 text-center text-slate-500">Loading...</div>
+          ) : filteredData.length === 0 ? (
+            <div className="py-10 text-center text-slate-500">
+              No {activeTab} found.
+            </div>
+          ) : (
+            <Table className="border-spacing-y-[10px] border-separate -mt-2">
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th className="border-b-0 whitespace-nowrap">
                     <FormCheck.Input type="checkbox" />
-                  </Table.Td>
-                  <Table.Td className="box w-40 whitespace-nowrap rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                    <a
-                      href=""
-                      className="underline decoration-dotted whitespace-nowrap"
-                    >
-                      {"#INV-" + faker.totals[0] + "807556"}
-                    </a>
-                  </Table.Td>
-                  <Table.Td className="box w-40 whitespace-nowrap rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                    <a href="" className="font-medium whitespace-nowrap">
-                      {faker.users[0].name}
-                    </a>
-                    {faker.trueFalse[0] ? (
-                      <div
-                        v-if="faker.trueFalse[0]"
-                        className="text-slate-500 text-xs whitespace-nowrap mt-0.5"
-                      >
-                        Ohio, Ohio
+                  </Table.Th>
+                  <Table.Th className="border-b-0 whitespace-nowrap">REF / ID</Table.Th>
+                  <Table.Th className="border-b-0 whitespace-nowrap">USER</Table.Th>
+                  <Table.Th className="border-b-0 whitespace-nowrap text-center">STATUS</Table.Th>
+                  <Table.Th className="border-b-0 whitespace-nowrap">DATE</Table.Th>
+                  <Table.Th className="border-b-0 whitespace-nowrap text-right">
+                    <div className="pr-16">AMOUNT</div>
+                  </Table.Th>
+                  <Table.Th className="border-b-0 whitespace-nowrap text-center">ACTIONS</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {filteredData.map((item, i) => (
+                  <Table.Tr key={item.id ?? i} className="intro-x">
+                    <Table.Td className="box w-10 whitespace-nowrap rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                      <FormCheck.Input type="checkbox" />
+                    </Table.Td>
+
+                    {/* Ref */}
+                    <Table.Td className="box w-40 whitespace-nowrap rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                      <span className="underline decoration-dotted text-primary">
+                        #{item.reference ?? item.id}
+                      </span>
+                    </Table.Td>
+
+                    {/* User */}
+                    <Table.Td className="box w-44 whitespace-nowrap rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                      <div className="font-medium">{item.user?.name ?? item.name ?? "—"}</div>
+                      <div className="text-slate-500 text-xs mt-0.5">{item.user?.email ?? item.email ?? ""}</div>
+                    </Table.Td>
+
+                    {/* Status */}
+                    <Table.Td className="box whitespace-nowrap rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                      <div className={clsx("flex items-center justify-center font-medium capitalize", getStatusColor(item.status))}>
+                        <Lucide icon="CheckSquare" className="w-4 h-4 mr-1" />
+                        {item.status ?? "Pending"}
                       </div>
-                    ) : (
-                      <div className="text-slate-500 text-xs whitespace-nowrap mt-0.5">
-                        California, LA
+                    </Table.Td>
+
+                    {/* Date */}
+                    <Table.Td className="box whitespace-nowrap rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                      <div>{moment(item.created_at).format("DD MMM YYYY")}</div>
+                      <div className="text-slate-500 text-xs mt-0.5">{moment(item.created_at).format("h:mm A")}</div>
+                    </Table.Td>
+
+                    {/* Amount */}
+                    <Table.Td className="box w-40 whitespace-nowrap rounded-l-none rounded-r-none border-x-0 text-right shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
+                      <div className="pr-16 font-semibold">
+                        ₦{Number(item.amount ?? 0).toLocaleString()}
                       </div>
-                    )}
-                  </Table.Td>
-                  <Table.Td className="box whitespace-nowrap rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                    <div
-                      className={clsx({
-                        "flex items-center justify-center whitespace-nowrap":
-                          true,
-                        "text-success": faker.trueFalse[0],
-                        "text-danger": !faker.trueFalse[0],
-                      })}
-                    >
-                      <Lucide icon="CheckSquare" className="w-4 h-4 mr-2" />
-                      {faker.trueFalse[0] ? "Active" : "Inactive"}
-                    </div>
-                  </Table.Td>
-                  <Table.Td className="box whitespace-nowrap rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                    {faker.trueFalse[0] ? (
-                      <>
-                        <div className="whitespace-nowrap">
-                          Direct bank transfer
-                        </div>
-                        <div className="text-slate-500 text-xs whitespace-nowrap mt-0.5">
-                          25 March, 12:55
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="whitespace-nowrap">
-                          Checking payments
-                        </div>
-                        <div className="text-slate-500 text-xs whitespace-nowrap mt-0.5">
-                          30 March, 11:00
-                        </div>
-                      </>
-                    )}
-                  </Table.Td>
-                  <Table.Td className="box w-40 whitespace-nowrap rounded-l-none rounded-r-none border-x-0 text-right shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600">
-                    <div className="pr-16">${faker.totals[0] + ",000,00"}</div>
-                  </Table.Td>
-                  <Table.Td
-                    className={clsx([
+                    </Table.Td>
+
+                    {/* Actions */}
+                    <Table.Td className={clsx([
                       "box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600",
                       "before:absolute before:inset-y-0 before:left-0 before:my-auto before:block before:h-8 before:w-px before:bg-slate-200 before:dark:bg-darkmode-400",
-                    ])}
-                  >
-                    <div className="flex items-center justify-center">
-                      <a
-                        className="flex items-center mr-5 text-primary whitespace-nowrap"
-                        href="#"
-                      >
-                        <Lucide icon="CheckSquare" className="w-4 h-4 mr-1" />{" "}
-                        View Details
-                      </a>
-                      <a
-                        className="flex items-center text-primary whitespace-nowrap"
-                        href="#"
-                        onClick={(event: React.MouseEvent) => {
-                          event.preventDefault();
-                          setDeleteConfirmationModal(true);
-                        }}
-                      >
-                        <Lucide
-                          icon="ArrowLeftRight"
-                          className="w-4 h-4 mr-1"
-                        />
-                        Change Status
-                      </a>
-                    </div>
-                  </Table.Td>
-                </Table.Tr>
-              ))}
-            </Table.Tbody>
-          </Table>
+                    ])}>
+                      <div className="flex items-center justify-center gap-3">
+                        {item.status?.toLowerCase() === "pending" ? (
+                          <>
+                            <button
+                              onClick={() => { setSelectedItem(item); setActionType("approve"); setActionModal(true); }}
+                              className="flex items-center text-success whitespace-nowrap text-sm font-medium hover:underline"
+                            >
+                              <Lucide icon="CheckSquare" className="w-4 h-4 mr-1" />
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => { setSelectedItem(item); setActionType("reject"); setActionModal(true); }}
+                              className="flex items-center text-danger whitespace-nowrap text-sm font-medium hover:underline"
+                            >
+                              <Lucide icon="XCircle" className="w-4 h-4 mr-1" />
+                              Reject
+                            </button>
+                          </>
+                        ) : (
+                          <span className={clsx("text-sm font-medium capitalize", getStatusColor(item.status))}>
+                            {item.status}
+                          </span>
+                        )}
+                      </div>
+                    </Table.Td>
+                  </Table.Tr>
+                ))}
+              </Table.Tbody>
+            </Table>
+          )}
         </div>
-        {/* END: Data List */}
-        {/* BEGIN: Pagination */}
+
+        {/* ── Pagination ── */}
         <div className="flex flex-wrap items-center col-span-12 intro-y sm:flex-row sm:flex-nowrap">
           <Pagination className="w-full sm:w-auto sm:mr-auto">
             <Pagination.Link>
@@ -213,11 +298,7 @@ function Main() {
             <Pagination.Link>
               <Lucide icon="ChevronLeft" className="w-4 h-4" />
             </Pagination.Link>
-            <Pagination.Link>...</Pagination.Link>
-            <Pagination.Link>1</Pagination.Link>
-            <Pagination.Link active>2</Pagination.Link>
-            <Pagination.Link>3</Pagination.Link>
-            <Pagination.Link>...</Pagination.Link>
+            <Pagination.Link active>1</Pagination.Link>
             <Pagination.Link>
               <Lucide icon="ChevronRight" className="w-4 h-4" />
             </Pagination.Link>
@@ -228,55 +309,51 @@ function Main() {
           <FormSelect className="w-20 mt-3 !box sm:mt-0">
             <option>10</option>
             <option>25</option>
-            <option>35</option>
             <option>50</option>
           </FormSelect>
         </div>
-        {/* END: Pagination */}
       </div>
-      {/* BEGIN: Delete Confirmation Modal */}
+
+      {/* ── Confirm Modal ── */}
       <Dialog
-        open={deleteConfirmationModal}
-        onClose={() => {
-          setDeleteConfirmationModal(false);
-        }}
-        initialFocus={deleteButtonRef}
+        open={actionModal}
+        onClose={() => { setActionModal(false); setSelectedItem(null); }}
+        initialFocus={actionButtonRef}
       >
         <Dialog.Panel>
           <div className="p-5 text-center">
             <Lucide
-              icon="XCircle"
-              className="w-16 h-16 mx-auto mt-3 text-danger"
+              icon={actionType === "approve" ? "CheckCircle" : "XCircle"}
+              className={clsx("w-16 h-16 mx-auto mt-3", actionType === "approve" ? "text-success" : "text-danger")}
             />
-            <div className="mt-5 text-3xl">Are you sure?</div>
+            <div className="mt-5 text-3xl">
+              {actionType === "approve" ? "Approve?" : "Reject?"}
+            </div>
             <div className="mt-2 text-slate-500">
-              Do you really want to delete these records? <br />
-              This process cannot be undone.
+              {actionType === "approve"
+                ? `Approve this ${activeTab === "deposits" ? "deposit" : "withdrawal"} of ₦${Number(selectedItem?.amount ?? 0).toLocaleString()}?`
+                : `Reject this ${activeTab === "deposits" ? "deposit" : "withdrawal"} of ₦${Number(selectedItem?.amount ?? 0).toLocaleString()}?`}
             </div>
           </div>
-          <div className="px-5 pb-8 text-center">
+          <div className="px-5 pb-8 text-center flex justify-center gap-3">
             <Button
               variant="outline-secondary"
-              type="button"
-              onClick={() => {
-                setDeleteConfirmationModal(false);
-              }}
-              className="w-24 mr-1"
+              onClick={() => { setActionModal(false); setSelectedItem(null); }}
+              className="w-24"
             >
               Cancel
             </Button>
             <Button
-              variant="danger"
-              type="button"
+              ref={actionButtonRef}
+              variant={actionType === "approve" ? "success" : "danger"}
+              onClick={actionType === "approve" ? handleApprove : handleReject}
               className="w-24"
-              ref={deleteButtonRef}
             >
-              Delete
+              {actionType === "approve" ? "Approve" : "Reject"}
             </Button>
           </div>
         </Dialog.Panel>
       </Dialog>
-      {/* END: Delete Confirmation Modal */}
     </>
   );
 }

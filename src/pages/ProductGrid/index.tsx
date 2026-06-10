@@ -171,8 +171,9 @@ const AdminPaymentsPanel: React.FC = () => {
         params.append('search', searchQuery);
       }
       
+      // ✅ FIXED: Removed duplicate /v1 prefix (axiosAdmin baseURL already includes /v1)
       const response = await axiosAdmin.get(
-        `/v1/admin/payments?${params.toString()}`
+        `/admin/payments?${params.toString()}`
       );
 
       if (response?.data?.data) {
@@ -194,7 +195,8 @@ const AdminPaymentsPanel: React.FC = () => {
   const approvePayment = async (payment: Payment) => {
     setProcessingId(payment.id);
     try {
-      const response = await axiosAdmin.post('/v1/admin/approve-payment', {
+      // ✅ FIXED: Removed duplicate /v1 prefix
+      const response = await axiosAdmin.post('/admin/approve-payment', {
         payment_id: payment.id,
       });
 
@@ -220,7 +222,8 @@ const AdminPaymentsPanel: React.FC = () => {
   const rejectPayment = async (payment: Payment) => {
     setProcessingId(payment.id);
     try {
-      const response = await axiosAdmin.post('/v1/admin/reject-payment', {
+      // ✅ FIXED: Removed duplicate /v1 prefix
+      const response = await axiosAdmin.post('/admin/reject-payment', {
         payment_id: payment.id,
       });
 

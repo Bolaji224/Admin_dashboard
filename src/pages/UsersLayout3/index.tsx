@@ -8,6 +8,7 @@ import { Menu } from "@/components/Base/Headless";
 import { useNavigate } from "react-router-dom";
 
 
+
 /* ===================== TYPES ===================== */
 interface Freelancer {
   id: number;
@@ -30,7 +31,7 @@ function Main() {
   const fetchFreelancers = async () => {
   setLoading(true);
   try {
-    const res = await axios.get("/v1/admin/freelancers", {  // ✅ Added /v1
+    const res = await axios.get("/admin/freelancers", {  // ✅ Added /v1
       headers: {
         "x-api-key": "secret123",
       },
@@ -180,13 +181,10 @@ function Main() {
                 </div>
 
                 <div className="p-5 text-center border-t lg:text-right border-slate-200/60">
-                  <Button variant="primary" className="px-2 py-1 mr-2">
-                    Message
-                  </Button>
                   <Button
   variant="outline-secondary"
   className="px-2 py-1"
-  onClick={() => navigate("/profile-overview-3")}
+  onClick={() => navigate(`/admin/profile-overview-3/${f.id}`)}
 >
   View Profile
 </Button>

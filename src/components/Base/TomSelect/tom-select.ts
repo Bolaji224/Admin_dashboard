@@ -1,7 +1,16 @@
 import { TomSelectProps, TomSelectElement } from "./index";
-import { TomSettings, RecursivePartial } from "tom-select/src/types/index";
 import TomSelect from "tom-select";
 import _ from "lodash";
+
+/**
+ * tom-select typings differ across versions.
+ * Define safe fallback types to avoid build errors.
+ */
+type RecursivePartial<T> = {
+  [P in keyof T]?: T[P] extends object ? RecursivePartial<T[P]> : T[P];
+};
+
+type TomSettings = Record<string, any>;
 
 const setValue = <T extends string | string[]>(
   el: TomSelectElement,
@@ -37,7 +46,7 @@ const init = <T extends string | string[]>(
   // On option add
   if (Array.isArray(props.value)) {
     computedOptions = {
-      onOptionAdd: function (value: string | number) {
+      onOptionAdd(value: string | number) {
         // Add new option
         const newOption = document.createElement("option");
         newOption.value = value.toString();
@@ -45,7 +54,7 @@ const init = <T extends string | string[]>(
         originalEl.add(newOption);
 
         // Emit option add
-        props.onOptionAdd && props.onOptionAdd(value.toString());
+        props.onOptionAdd?.(value.toString());
       },
       ...computedOptions,
     };
@@ -55,15 +64,13 @@ const init = <T extends string | string[]>(
 
   // On change
   clonedEl.TomSelect.on("change", function (selectedItems: string[] | string) {
-    if (props.onChange) {
-      props.onChange({
-        target: {
-          value: Array.isArray(selectedItems)
-            ? ([...selectedItems] as T)
-            : (selectedItems as T),
-        },
-      });
-    }
+    props.onChange?.({
+      target: {
+        value: Array.isArray(selectedItems)
+          ? ([...selectedItems] as T)
+          : (selectedItems as T),
+      },
+    });
   });
 };
 
@@ -92,9 +99,7 @@ const updateValue = <T extends string | string[]>(
   computedOptions: RecursivePartial<TomSettings>
 ) => {
   // Remove old options
-  for (const [optionKey, option] of Object.entries(
-    clonedEl.TomSelect.options
-  )) {
+  for (const [, option] of Object.entries(clonedEl.TomSelect.options)) {
     if (
       !getOptions(originalEl.children).filter((optionEl) => {
         return (
@@ -111,6 +116,7 @@ const updateValue = <T extends string | string[]>(
   const initialClassNames = clonedEl
     .getAttribute("data-initial-class")
     ?.split(" ");
+
   clonedEl.setAttribute(
     "class",
     [
@@ -120,6 +126,7 @@ const updateValue = <T extends string | string[]>(
       ),
     ].join(" ")
   );
+
   clonedEl.TomSelect.wrapper.setAttribute(
     "class",
     [
@@ -129,6 +136,7 @@ const updateValue = <T extends string | string[]>(
       ),
     ].join(" ")
   );
+
   clonedEl.setAttribute(
     "data-initial-class",
     Array.from(originalEl.classList).join(" ")
@@ -154,9 +162,11 @@ const updateValue = <T extends string | string[]>(
     (Array.isArray(value) && !_.isEqual(value, clonedEl.TomSelect.getValue()))
   ) {
     clonedEl.TomSelect.destroy();
+
     if (originalEl.innerHTML) {
       clonedEl.innerHTML = originalEl.innerHTML;
     }
+
     setValue(clonedEl, props);
     init(originalEl, clonedEl, props, computedOptions);
   }

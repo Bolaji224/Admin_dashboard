@@ -94,8 +94,6 @@ export default function AdminUserProfile() {
     }
   };
 
-
-
   /* ================= SEARCH ================= */
 
   const filteredUsers = users.filter(
@@ -230,130 +228,24 @@ export default function AdminUserProfile() {
     </div>
   );
 
-const AccountSettings = () => {
-  const [confirming, setConfirming] = useState<"approve" | "suspend" | "delete" | null>(null);
-
-  const handleAction = async () => {
-    if (confirming === "approve") await approveUser();
-    if (confirming === "suspend") await suspendUser();
-    if (confirming === "delete") await deleteUser();
-    setConfirming(null);
-  };
-
-
-  const statusInfo = {
-    approve: { label: "Approve User", desc: "This will grant the user full access to the platform.", color: "bg-green-600 hover:bg-green-700", icon: <CheckCircle size={16} /> },
-    suspend: { label: "Suspend User", desc: "This will temporarily restrict the user from accessing the platform.", color: "bg-yellow-500 hover:bg-yellow-600", icon: <Ban size={16} /> },
-    delete:  { label: "Delete User", desc: "This will permanently delete the user. This cannot be undone.", color: "bg-red-600 hover:bg-red-700", icon: <Trash2 size={16} /> },
-  };
-
-  return (
+  const AccountSettings = () => (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-semibold text-gray-900">Account Status</h2>
-        <p className="text-sm text-gray-500 mt-1">Manage this user's account access and status</p>
+      <h2 className="text-2xl font-semibold">Account Status</h2>
+
+      <div className="flex gap-3">
+        <button onClick={approveUser} className="btn-success">
+          <CheckCircle size={18} /> Approve
+        </button>
+        <button onClick={suspendUser} className="btn-warning">
+          <Ban size={18} /> Suspend
+        </button>
+        <button onClick={deleteUser} className="btn-danger">
+          <Trash2 size={18} /> Delete
+        </button>
       </div>
-
-      {/* Current status */}
-      <div className="flex items-center gap-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-          <User size={18} className="text-blue-600" />
-        </div>
-        <div>
-          <p className="text-sm font-semibold text-blue-800">{selectedUser.name}</p>
-          <p className="text-xs text-blue-600">
-            {selectedUser.is_suspended ? "🔴 Suspended" : selectedUser.is_approved ? "🟢 Approved" : "🟡 Pending Approval"}
-          </p>
-        </div>
-      </div>
-
-      {/* Action cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Approve */}
-        <div className="border border-green-200 rounded-xl p-5 bg-green-50 space-y-3">
-          <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-            <CheckCircle size={20} className="text-green-600" />
-          </div>
-          <div>
-            <p className="font-semibold text-gray-800 text-sm">Approve Account</p>
-            <p className="text-xs text-gray-500 mt-0.5">Grant full platform access</p>
-          </div>
-          <button
-            onClick={() => setConfirming("approve")}
-            className="w-full py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-medium transition flex items-center justify-center gap-2"
-          >
-            <CheckCircle size={15} /> Approve
-          </button>
-        </div>
-
-        {/* Suspend */}
-        <div className="border border-yellow-200 rounded-xl p-5 bg-yellow-50 space-y-3">
-          <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
-            <Ban size={20} className="text-yellow-600" />
-          </div>
-          <div>
-            <p className="font-semibold text-gray-800 text-sm">Suspend Account</p>
-            <p className="text-xs text-gray-500 mt-0.5">Temporarily restrict access</p>
-          </div>
-          <button
-            onClick={() => setConfirming("suspend")}
-            className="w-full py-2 rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-medium transition flex items-center justify-center gap-2"
-          >
-            <Ban size={15} /> Suspend
-          </button>
-        </div>
-
-        {/* Delete */}
-        <div className="border border-red-200 rounded-xl p-5 bg-red-50 space-y-3">
-          <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-            <Trash2 size={20} className="text-red-600" />
-          </div>
-          <div>
-            <p className="font-semibold text-gray-800 text-sm">Delete Account</p>
-            <p className="text-xs text-gray-500 mt-0.5">Permanently remove user</p>
-          </div>
-          <button
-            onClick={() => setConfirming("delete")}
-            className="w-full py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition flex items-center justify-center gap-2"
-          >
-            <Trash2 size={15} /> Delete
-          </button>
-        </div>
-      </div>
-
-      {/* Confirm modal */}
-      {confirming && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 text-center space-y-4">
-            <div className={`w-16 h-16 rounded-full mx-auto flex items-center justify-center ${
-              confirming === "approve" ? "bg-green-100" : confirming === "suspend" ? "bg-yellow-100" : "bg-red-100"
-            }`}>
-              {confirming === "approve" ? <CheckCircle size={32} className="text-green-600" /> :
-               confirming === "suspend" ? <Ban size={32} className="text-yellow-600" /> :
-               <Trash2 size={32} className="text-red-600" />}
-            </div>
-            <h3 className="text-xl font-bold text-gray-900">{statusInfo[confirming].label}?</h3>
-            <p className="text-sm text-gray-500">{statusInfo[confirming].desc}</p>
-            <div className="flex gap-3 pt-2">
-              <button
-                onClick={() => setConfirming(null)}
-                className="flex-1 py-2.5 rounded-lg border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleAction}
-                className={`flex-1 py-2.5 rounded-lg text-white text-sm font-medium transition ${statusInfo[confirming].color}`}
-              >
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
-};
+
   const Security = () => {
     const [password, setPassword] = useState("");
 

@@ -3,7 +3,9 @@ import { getAdminToken, logoutAdmin } from "./adminAuth";
 
 // 🔹 Admin API axios instance (NO .env)
 const instance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "https://api.workason.site/api",
+
+  baseURL: import.meta.env.VITE_API_URL,
+
   withCredentials: false,
   headers: {
     "Content-Type": "application/json",

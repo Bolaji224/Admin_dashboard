@@ -28,7 +28,7 @@ function Main() {
  const fetchEmployers = async () => {
   setLoading(true);
   try {
-    const res = await axios.get("/v1/admin/employers", {  // ✅ Added /v1
+    const res = await axios.get("/admin/employers", {  // ✅ Added /v1
       headers: {
         "x-api-key": "secret123",
       },
@@ -158,14 +158,10 @@ function Main() {
                       <Progress.Bar className="w-1/2 bg-primary" />
                     </Progress>
                   </div>
-
-                  <Button variant="primary" className="px-2 py-1 mr-2">
-                    Message
-                  </Button>
-                  <Button
+                 <Button
   variant="outline-secondary"
   className="px-2 py-1"
-  onClick={() => navigate("/profile-overview-3")}
+  onClick={() => navigate(`/admin/profile-overview-3/${emp.id}`)}
 >
   View Profile
 </Button>
