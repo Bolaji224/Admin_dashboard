@@ -21,6 +21,7 @@ interface Freelancer {
   city?: string | null;
   country?: string | null;
   is_approved: boolean;
+  is_suspended?: boolean;
   joined_at?: string;
   cv?: string | null;
   smartcv?: string | null;
@@ -57,6 +58,8 @@ function Main() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [approving, setApproving] = useState<number | null>(null);
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
+  const [suspending, setSuspending] = useState<number | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Freelancer | null>(null);
 
   /* ─── Toast ─────────────────────────────────────────────────────────────── */
 
@@ -70,7 +73,7 @@ function Main() {
   const fetchFreelancers = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await axios.get("/v1/admin/freelancers");
+      const res = await axios.get("admin/freelancers");
       if (res.data?.status === "success") {
         setFreelancers(Array.isArray(res.data.data) ? res.data.data : []);
         setStats(res.data.stats ?? { total: 0, approved: 0, pending: 0 });
@@ -92,7 +95,7 @@ function Main() {
   const handleApprove = async (id: number) => {
     setApproving(id);
     try {
-      const res = await axios.post(`/v1/admin/freelancers/${id}/approve`);
+      const res = await axios.post(`admin/freelancers/${id}/approve`);
       if (res.data?.status === "success") {
         setFreelancers((prev) =>
           prev.map((f) => (f.id === id ? { ...f, is_approved: true } : f))
@@ -111,7 +114,7 @@ function Main() {
   const handleRevoke = async (id: number) => {
     setApproving(id);
     try {
-      const res = await axios.post(`/v1/admin/freelancers/${id}/revoke`);
+      const res = await axios.post(`admin/freelancers/${id}/revoke`);
       if (res.data?.status === "success") {
         setFreelancers((prev) =>
           prev.map((f) => (f.id === id ? { ...f, is_approved: false } : f))
@@ -124,6 +127,56 @@ function Main() {
       showToast(err.response?.data?.message || "Failed to revoke approval", false);
     } finally {
       setApproving(null);
+    }
+  };
+
+  const handleSuspend = async (id: number) => {
+    setSuspending(id);
+    try {
+      const res = await axios.post(`admin/freelancers/${id}/suspend`);
+      if (res.data?.status === "success") {
+        setFreelancers((prev) =>
+          prev.map((f) => (f.id === id ? { ...f, is_suspended: true } : f))
+        );
+        setSelected((prev) => (prev?.id === id ? { ...prev, is_suspended: true } : prev));
+        showToast("Freelancer suspended.");
+      }
+    } catch (err: any) {
+      showToast(err.response?.data?.message || "Failed to suspend freelancer", false);
+    } finally {
+      setSuspending(null);
+    }
+  };
+
+  const handleUnsuspend = async (id: number) => {
+    setSuspending(id);
+    try {
+      const res = await axios.post(`admin/freelancers/${id}/unsuspend`);
+      if (res.data?.status === "success") {
+        setFreelancers((prev) =>
+          prev.map((f) => (f.id === id ? { ...f, is_suspended: false } : f))
+        );
+        setSelected((prev) => (prev?.id === id ? { ...prev, is_suspended: false } : prev));
+        showToast("Freelancer unsuspended.");
+      }
+    } catch (err: any) {
+      showToast(err.response?.data?.message || "Failed to unsuspend freelancer", false);
+    } finally {
+      setSuspending(null);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    try {
+      await axios.delete(`admin/freelancers/${id}`);
+      setFreelancers((prev) => prev.filter((f) => f.id !== id));
+      setStats((s) => ({ ...s, total: s.total - 1 }));
+      if (selected?.id === id) { setDetailOpen(false); setSelected(null); }
+      setDeleteTarget(null);
+      showToast("Freelancer deleted.");
+    } catch (err: any) {
+      showToast(err.response?.data?.message || "Failed to delete freelancer", false);
+      setDeleteTarget(null);
     }
   };
 
@@ -281,12 +334,14 @@ function Main() {
                   {/* Status badge */}
                   <span
                     className={`absolute top-3 right-10 text-xs font-semibold px-2.5 py-1 rounded-full ${
-                      f.is_approved
+                      f.is_suspended
+                        ? "bg-danger/10 text-danger"
+                        : f.is_approved
                         ? "bg-success/10 text-success"
                         : "bg-warning/10 text-warning"
                     }`}
                   >
-                    {f.is_approved ? "Approved" : "Pending"}
+                    {f.is_suspended ? "Suspended" : f.is_approved ? "Approved" : "Pending"}
                   </span>
 
                   {/* Action menu */}
@@ -309,6 +364,21 @@ function Main() {
                           <span className="text-danger">Revoke</span>
                         </Menu.Item>
                       )}
+                      {!f.is_suspended ? (
+                        <Menu.Item onClick={() => handleSuspend(f.id)}>
+                          <Lucide icon="Ban" className="w-4 h-4 mr-2 text-warning" />
+                          <span className="text-warning">Suspend</span>
+                        </Menu.Item>
+                      ) : (
+                        <Menu.Item onClick={() => handleUnsuspend(f.id)}>
+                          <Lucide icon="RefreshCw" className="w-4 h-4 mr-2 text-primary" />
+                          <span className="text-primary">Unsuspend</span>
+                        </Menu.Item>
+                      )}
+                      <Menu.Item onClick={() => setDeleteTarget(f)}>
+                        <Lucide icon="Trash2" className="w-4 h-4 mr-2 text-danger" />
+                        <span className="text-danger">Delete</span>
+                      </Menu.Item>
                     </Menu.Items>
                   </Menu>
                 </div>
@@ -375,6 +445,29 @@ function Main() {
           ))
         )}
       </div>
+
+      {/* ─── Delete Confirmation ──────────────────────────────────────────── */}
+      {deleteTarget && (
+        <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} size="sm">
+          <Dialog.Panel>
+            <div className="p-5 text-center">
+              <Lucide icon="Trash2" className="w-16 h-16 mx-auto mt-3 text-danger" />
+              <div className="mt-5 text-xl font-semibold">Are you sure?</div>
+              <div className="mt-2 text-slate-500">
+                Delete <strong>{displayName(deleteTarget)}</strong>? This cannot be undone.
+              </div>
+            </div>
+            <div className="flex justify-center gap-3 px-5 pb-8">
+              <Button variant="outline-secondary" onClick={() => setDeleteTarget(null)}>
+                Cancel
+              </Button>
+              <Button variant="danger" onClick={() => handleDelete(deleteTarget.id)}>
+                Delete
+              </Button>
+            </div>
+          </Dialog.Panel>
+        </Dialog>
+      )}
 
       {/* ─── Detail Modal ──────────────────────────────────────────────────── */}
       {selected && (
@@ -499,13 +592,32 @@ function Main() {
             </div>
 
             {/* Modal footer */}
-            <div className="flex justify-end gap-3 px-5 py-4 border-t border-slate-200/60">
+            <div className="flex flex-wrap justify-end gap-2 px-5 py-4 border-t border-slate-200/60">
               <Button
                 variant="outline-secondary"
                 onClick={() => setDetailOpen(false)}
               >
                 Close
               </Button>
+              {!selected.is_suspended ? (
+                <Button
+                  variant="warning"
+                  disabled={suspending === selected.id}
+                  onClick={() => handleSuspend(selected.id)}
+                >
+                  <Lucide icon="Ban" className="w-4 h-4 mr-1.5" />
+                  {suspending === selected.id ? "Suspending…" : "Suspend"}
+                </Button>
+              ) : (
+                <Button
+                  variant="outline-primary"
+                  disabled={suspending === selected.id}
+                  onClick={() => handleUnsuspend(selected.id)}
+                >
+                  <Lucide icon="RefreshCw" className="w-4 h-4 mr-1.5" />
+                  {suspending === selected.id ? "Unsuspending…" : "Unsuspend"}
+                </Button>
+              )}
               {!selected.is_approved ? (
                 <Button
                   variant="success"
@@ -525,6 +637,13 @@ function Main() {
                   {approving === selected.id ? "Revoking…" : "Revoke Approval"}
                 </Button>
               )}
+              <Button
+                variant="danger"
+                onClick={() => { setDetailOpen(false); setDeleteTarget(selected); }}
+              >
+                <Lucide icon="Trash2" className="w-4 h-4 mr-1.5" />
+                Delete
+              </Button>
             </div>
           </Dialog.Panel>
         </Dialog>
