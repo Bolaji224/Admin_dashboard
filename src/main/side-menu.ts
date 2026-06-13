@@ -77,7 +77,7 @@ const menu: Array<Menu | "divider"> = [
   },
   "divider",
   {
-    icon: "Layout",
+    icon: "LayoutDashboard",
     pathname: "/admin/cms-manager",
     title: "CMS Manager",
   },
