@@ -352,7 +352,7 @@ function Main() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-10 intro-y">
         <div>
           <h2 className="text-lg font-medium flex items-center gap-2">
-            <Lucide icon="Layout" className="w-5 h-5 text-primary" />
+            <Lucide icon="LayoutDashboard" className="w-5 h-5 text-primary" />
             CMS Manager
           </h2>
           <p className="mt-1 text-sm text-slate-500">
@@ -451,7 +451,7 @@ function Main() {
           {/* Empty state */}
           {!isLoading && !currentModule && (
             <div className="box p-10 flex flex-col items-center justify-center gap-3 text-slate-400">
-              <Lucide icon="Layout" className="w-12 h-12 opacity-20" />
+              <Lucide icon="LayoutDashboard" className="w-12 h-12 opacity-20" />
               <p className="font-medium">Select a module</p>
               <p className="text-sm text-center max-w-xs">
                 Choose a content module from the sidebar to begin editing.

@@ -75,6 +75,7 @@ import Layout from "../themes";
 import ProtectedAdminRoute from "@/components/Admin/ProtectedAdminRoute";
 import AdminLogin from "../pages/Login";
 import CmsManager from "../pages/CmsManager";
+import PageLoader from "@/components/PageLoader";
 
 function Router() {
   const routes = [
@@ -366,11 +367,11 @@ function Router() {
               path: "image-zoom",
               element: <ImageZoom />,
             },
-          ],
-        },
-        {
+            {
           path: "cms-manager",
           element: <CmsManager />,
+        },
+          ],
         },
       ],
     },
