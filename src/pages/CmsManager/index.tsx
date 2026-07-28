@@ -25,24 +25,63 @@ import {
 
 const MODULE_LABELS: Record<string, string> = {
   homepage: "Homepage",
+  about: "About Us",
+  employers: "Employers (SkillStamp™)",
+  employers_ordinary: "Employers → Ordinary",
+  employers_smartstart: "Employers → SmartStart",
+  freelancers_ordinary: "Freelancers → Ordinary",
+  freelancers_smartstart: "Freelancers → SmartStart",
+  freelancers_talentvault: "Freelancers → Talent Vault",
+  freelancers_inhouse: "Freelancers → In House",
   employer_dashboard: "Employer Dashboard",
+  employer_dashboard_post_job: "Employer Dashboard → Post Job",
+  employer_dashboard_talent_vault: "Employer Dashboard → Talent Vault",
+  employer_dashboard_smartstart: "Employer Dashboard → SmartStart Form",
   candidate_dashboard: "Candidate Dashboard",
+  candidate_dashboard_smartstart: "Candidate Dashboard → SmartStart App",
+  candidate_dashboard_smartguide: "Candidate Dashboard → SmartGuide",
   footer: "Footer",
   global: "Global Settings",
 };
 
 const MODULE_ICONS: Record<string, React.ComponentProps<typeof Lucide>["icon"]> = {
   homepage: "Home",
+  about: "Info",
+  employers: "Shield",
+  employers_ordinary: "ShoppingBag",
+  employers_smartstart: "Zap",
+  freelancers_ordinary: "Users",
+  freelancers_smartstart: "Award",
+  freelancers_talentvault: "Lock",
+  freelancers_inhouse: "Building2",
   employer_dashboard: "Briefcase",
+  employer_dashboard_post_job: "FileText",
+  employer_dashboard_talent_vault: "Database",
+  employer_dashboard_smartstart: "Rocket",
   candidate_dashboard: "User",
+  candidate_dashboard_smartstart: "Star",
+  candidate_dashboard_smartguide: "BookOpen",
   footer: "Mail",
   global: "Settings",
 };
 
 const MODULE_ORDER = [
   "homepage",
+  "about",
+  "employers",
+  "employers_ordinary",
+  "employers_smartstart",
+  "freelancers_ordinary",
+  "freelancers_smartstart",
+  "freelancers_talentvault",
+  "freelancers_inhouse",
   "employer_dashboard",
+  "employer_dashboard_post_job",
+  "employer_dashboard_talent_vault",
+  "employer_dashboard_smartstart",
   "candidate_dashboard",
+  "candidate_dashboard_smartstart",
+  "candidate_dashboard_smartguide",
   "footer",
   "global",
 ];
@@ -51,6 +90,10 @@ const MODULE_ORDER = [
 
 function isHtmlField(key: string): boolean {
   return key.endsWith("_html");
+}
+
+function isJsonField(key: string): boolean {
+  return key.endsWith("_json");
 }
 
 function isTextareaField(key: string): boolean {
@@ -651,6 +694,42 @@ function FieldRow({ fieldKey, value, onUpdate }: FieldRowProps) {
           value={value as string}
           onChange={(data: string) => onUpdate(fieldKey, data)}
         />
+      </div>
+    );
+  }
+
+  // ── JSON array field → monospace textarea ────────────────────────────────
+  if (isJsonField(fieldKey)) {
+    let isValid = true;
+    try { JSON.parse(value as string); } catch { isValid = false; }
+
+    return (
+      <div className="py-2 border-b border-slate-100 last:border-0">
+        <div className="mb-1.5 flex items-baseline justify-between">
+          <FormLabel className="!mb-0 font-medium text-slate-700 text-sm">
+            {label}
+          </FormLabel>
+          <div className="flex items-center gap-2">
+            <span
+              className={`text-xs font-medium ${
+                isValid ? "text-success" : "text-danger"
+              }`}
+            >
+              {isValid ? "Valid JSON" : "Invalid JSON"}
+            </span>
+            <span className="text-xs text-slate-400">{fieldKey}</span>
+          </div>
+        </div>
+        <FormTextarea
+          rows={8}
+          value={value as string}
+          onChange={(e) => onUpdate(fieldKey, e.target.value)}
+          className="resize-y font-mono text-xs"
+          placeholder="[]"
+        />
+        <p className="mt-1 text-xs text-slate-400">
+          JSON array. Each item is one entry in this section. Changes take effect after saving.
+        </p>
       </div>
     );
   }
