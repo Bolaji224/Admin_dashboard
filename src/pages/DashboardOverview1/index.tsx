@@ -1,6 +1,6 @@
 import _ from "lodash";
 import clsx from "clsx";
-import axios from "axios";
+import axios from "@/utils/axios";
 import { useEffect, useRef, useState } from "react";
 import fakerData from "@/utils/faker";
 import Button from "@/components/Base/Button";
@@ -39,14 +39,7 @@ function Main() {
       setLoading(true);
       setError(null);
 
-      const res = await axios.get(
-  `${import.meta.env.VITE_API_URL}/admin/dashboard`,
-        {
-          headers: {
-            "X-API-Key": "secret123",
-          },
-        }
-      );
+      const res = await axios.get("/v1/admin/dashboard");
 
       setDashboardData(res.data);
     } catch (err: any) {
