@@ -98,7 +98,7 @@ function Main() {
   const fetchModules = useCallback(async () => {
     dispatch(setLoading());
     try {
-      const res = await axios.get("/v1/admin/cms/settings");
+      const res = await axios.get("/admin/cms/settings");
       if (res.data?.status === "success" && Array.isArray(res.data.data)) {
         const modulesMap: ModulesMap = {};
         for (const record of res.data.data) {
@@ -143,7 +143,7 @@ function Main() {
     if (!currentModule || !currentContent || isSaving) return;
     dispatch(setSaving());
     try {
-      const res = await axios.put(`/v1/admin/cms/settings/${currentModule}`, {
+      const res = await axios.put(`/admin/cms/settings/${currentModule}`, {
         content: currentContent,
       });
       if (res.data?.status === "success") {
