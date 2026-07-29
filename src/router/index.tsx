@@ -70,6 +70,7 @@ import Validation from "../pages/Validation";
 import Chart from "../pages/Chart";
 import Slider from "../pages/Slider";
 import ImageZoom from "../pages/ImageZoom";
+import PageLoader from '@/components/PageLoader';
 
 import Layout from "../themes";
 import ProtectedAdminRoute from "@/components/Admin/ProtectedAdminRoute";
@@ -89,7 +90,7 @@ function Router() {
     },
     {
       path: "/admin",
-      element: <ProtectedAdminRoute />,
+  element: <Layout />,
       children: [
         {
           path: "",
