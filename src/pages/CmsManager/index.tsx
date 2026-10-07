@@ -187,8 +187,8 @@ function Main() {
     dispatch(setSaving());
     try {
       const res = await axios.put(`/admin/cms/settings/${currentModule}`, {
-        content: currentContent,
-      });
+  content: currentContent,
+});
       if (res.data?.status === "success") {
         const saved =
           (res.data.data?.content ?? res.data.data ?? currentContent) as ModuleContent;
@@ -215,7 +215,7 @@ function Main() {
     const target = pendingModule;
     dispatch(setSaving());
     try {
-      const res = await axios.put(`/v1/admin/cms/settings/${currentModule}`, {
+      const res = await axios.put(`/admin/cms/settings/${currentModule}`, {
         content: currentContent,
       });
       if (res.data?.status === "success") {

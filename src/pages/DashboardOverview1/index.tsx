@@ -39,7 +39,7 @@ function Main() {
       setLoading(true);
       setError(null);
 
-      const res = await axios.get("/v1/admin/dashboard");
+      const res = await axios.get("/admin/dashboard");
 
       setDashboardData(res.data);
     } catch (err: any) {
