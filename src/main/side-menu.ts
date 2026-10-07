@@ -29,6 +29,11 @@ const menu: Array<Menu | "divider"> = [
     ],
   },
   {
+    icon: "Sparkles",
+    pathname: "/admin/smartstart",
+    title: "SmartStart™",
+  },
+  {
     icon: "ShoppingBag",
     title: "Finance",
     subMenu: [
@@ -72,6 +77,37 @@ const menu: Array<Menu | "divider"> = [
             title: "Job List",
           },
         ],
+      },
+    ],
+  },
+  {
+    icon: "Network",
+    title: "Affiliate Programme",
+    subMenu: [
+      {
+        icon: "Activity",
+        pathname: "/admin/affiliate-overview",
+        title: "Overview",
+      },
+      {
+        icon: "Activity",
+        pathname: "/admin/affiliates",
+        title: "Affiliates",
+      },
+      {
+        icon: "Activity",
+        pathname: "/admin/referrals",
+        title: "Referrals",
+      },
+      {
+        icon: "Activity",
+        pathname: "/admin/affiliate-commissions",
+        title: "Commissions",
+      },
+      {
+        icon: "Activity",
+        pathname: "/admin/affiliate-payments",
+        title: "Payments",
       },
     ],
   },

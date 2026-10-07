@@ -76,7 +76,15 @@ import Layout from "../themes";
 import ProtectedAdminRoute from "@/components/Admin/ProtectedAdminRoute";
 import AdminLogin from "../pages/Login";
 import CmsManager from "../pages/CmsManager";
-import PageLoader from "@/components/PageLoader";
+import SmartStartList from "../pages/SmartStartList";
+import SmartStartDetail from "../pages/SmartStartDetail";
+import AffiliateOverview from "../pages/AffiliateOverview";
+import AffiliateList from "../pages/AffiliateList";
+import AffiliateDetail from "../pages/AffiliateDetail";
+import AffiliateReferrals from "../pages/AffiliateReferrals";
+import AffiliateCommissions from "../pages/AffiliateCommissions";
+import AffiliatePayments from "../pages/AffiliatePayments";
+
 
 function Router() {
   const routes = [
@@ -90,11 +98,10 @@ function Router() {
     },
     {
       path: "/admin",
-  element: <Layout />,
+      element: <Layout />,
       children: [
         {
           path: "",
-          element: <Layout />,
           children: [
             {
               path: "dashboard",
@@ -372,6 +379,38 @@ function Router() {
           path: "cms-manager",
           element: <CmsManager />,
         },
+            {
+              path: "smartstart",
+              element: <SmartStartList />,
+            },
+            {
+              path: "smartstart/:id",
+              element: <SmartStartDetail />,
+            },
+            {
+              path: "affiliate-overview",
+              element: <AffiliateOverview />,
+            },
+            {
+              path: "affiliates",
+              element: <AffiliateList />,
+            },
+            {
+              path: "affiliates/:id",
+              element: <AffiliateDetail />,
+            },
+            {
+              path: "referrals",
+              element: <AffiliateReferrals />,
+            },
+            {
+              path: "affiliate-commissions",
+              element: <AffiliateCommissions />,
+            },
+            {
+              path: "affiliate-payments",
+              element: <AffiliatePayments />,
+            },
           ],
         },
       ],

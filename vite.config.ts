@@ -31,8 +31,8 @@ export default defineConfig({
   },
   plugins: [
     react(),
-    visualizer({ open: true }), // 👈 opens the map in browser after build
-  ],
+    process.env.ANALYZE === "true" && visualizer({ open: true }),
+  ].filter(Boolean) as any,
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
